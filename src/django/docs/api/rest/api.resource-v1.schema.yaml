@@ -1,0 +1,730 @@
+openapi: 3.1.0
+info:
+  title: Weather Forecast Service - REST API
+  version: v1
+  description: |
+    Documentation of Weather Forecast Service (WFS) REST API.
+    This document describes API specification of version v1, and resources (schemas) of version v1.
+
+    **To get access to private endpoints click `Authorize` button and provide JWT e.g.`Bearer xyz`.**
+tags:
+  - name: JWT
+    description: Operations to manage JSON Web Token (JWT)
+  - name: Public
+    description: Operations available to all users
+  - name: Private
+    description: Operations available only to admin (superusers)
+paths:
+  /api/jwt/obtain:
+    post:
+      summary: Obtain user's JWT
+      operationId: api_jwt_obtain
+      description: Obtain user's JWT.
+      tags:
+        - JWT
+      security:
+        - tokenAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  default: admin
+                password:
+                  type: string
+                  default: admin
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+  /api/jwt/refresh:
+    post:
+      summary: Refresh JWT
+      operationId: api_refresh_obtain
+      description: Refresh user's JWT.
+      tags:
+        - JWT
+      security:
+        - tokenAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+  /api/jwt/verify:
+    post:
+      summary: Verify JWT
+      operationId: api_verify_obtain
+      description: Verify user's JWT.
+      tags:
+        - JWT
+      security:
+        - tokenAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+  /api/jwt/revoke:
+    post:
+      summary: Revoke JWT
+      operationId: api_verify_revoke
+      description: Revoke JWT.
+      tags:
+        - JWT
+      security:
+        - tokenAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+  /api/cities:
+    get:
+      summary: Obtain all cities
+      operationId: api_v1_cities_retrieve
+      description: Obtain all cities.
+      tags:
+        - Public
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - name: fields
+          in: query
+          description: Fields to return
+          required: false
+          schema:
+            type: string
+            default: uuid,name,country,region,timezone,latitude,longitude
+          style: form
+          explode: false
+        - name: sort
+          in: query
+          description: Fields to return
+          required: false
+          schema:
+            type: string
+            default: -name
+          style: form
+          example: -name
+          explode: false
+        - name: search_{key}
+          in: query
+          description: |
+            Search parameter with a dynamic key. Replace `{key}` with the actual field name, e.g. `uuid`, `name`, `country`, `region`, `timezone`, `latitude`, `longitude`.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+        500:
+          description: Internal server error
+    post:
+      summary: Create new city
+      operationId: api_v1_cities_create
+      tags:
+        - Private
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+      security:
+        - tokenAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  default: Copenhagen
+                country:
+                  type: string
+                  default: Denmark
+                region:
+                  type: string
+                  default: Europe
+                timezone:
+                  type: string
+                  default: Europe/Copenhagen
+                latitude:
+                  type: number
+                  format: float
+                  default: 55.675935
+                longitude:
+                  type: number
+                  format: float
+                  default: 12.569137
+      responses:
+        201:
+          description: City created successfully
+        400:
+          description: Bad request. Submitted data is invalid
+        401:
+          description: Authentication credentials were not provided
+        500:
+          description: Internal server error
+  /api/cities/{city_uuid}:
+    get:
+      summary: Obtain city data
+      operationId: api_v1_cities_retrieve_2
+      tags:
+        - Public
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - name: city_uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 337aefdd-0694-40c1-a646-5ac4d6addc93
+        - name: fields
+          in: query
+          description: Fields to return
+          required: false
+          schema:
+            type: string
+            default: uuid,name,country,region,timezone,latitude,longitude
+          style: form
+          explode: false
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+        401:
+          description: Authentication credentials were not provided
+        404:
+          description: Requested resource not found
+        500:
+          description: Internal server error
+    put:
+      summary: Whole city update
+      operationId: api_v1_cities_update
+      tags:
+        - Private
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - in: path
+          name: city_uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+          example: 337aefdd-0694-40c1-a646-5ac4d6addc93
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  default: COPENHAGEN
+                country:
+                  type: string
+                  default: DENMARK
+                region:
+                  type: string
+                  default: EUROPE
+                timezone:
+                  type: string
+                  default: EUROPE/COPENHAGEN
+                latitude:
+                  type: number
+                  format: float
+                  default: 55.675935
+                longitude:
+                  type: number
+                  format: float
+                  default: 12.569137
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+        401:
+          description: Authentication credentials were not provided
+        404:
+          description: Requested resource not found
+        500:
+          description: Internal server error
+    patch:
+      summary: Partial city update
+      operationId: api_v1_cities_partial_update
+      tags:
+        - Private
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - in: path
+          name: city_uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+          example: 337aefdd-0694-40c1-a646-5ac4d6addc93
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  default: COPENHAGEN
+      security:
+        - tokenAuth: []
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provide
+        401:
+          description: Authentication credentials were not provided
+        404:
+          description: Requested resource not found
+        500:
+          description: Internal server error
+    delete:
+      summary: Delete city
+      operationId: api_v1_cities_destroy
+      tags:
+        - Private
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - in: path
+          name: city_uuid
+          schema:
+            type: string
+            format: uuid
+          required: true
+          example: 337aefdd-0694-40c1-a646-5ac4d6addc93
+      security:
+        - tokenAuth: []
+      responses:
+        200:
+          description: Ok
+        401:
+          description: Authentication credentials were not provided
+        404:
+          description: Requested resource not found
+        500:
+          description: Internal server error
+  /api/forecasts:
+    get:
+      summary: Weather forecasts
+      operationId: api_v1_forecast_retrieve
+      description: Obtain weather forecasts for a given city.
+      tags:
+        - Public
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - name: city_uuid
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 337aefdd-0694-40c1-a646-5ac4d6addc93
+        - name: days
+          in: query
+          description: Number of days to generate forecast for
+          required: false
+          schema:
+            type: integer
+            default: 7
+            minimum: 1
+            maximum: 7
+        - name: fields
+          in: query
+          description: Fields to return
+          required: false
+          schema:
+            type: string
+            default: city_uuid,date,rain_sum_mm,showers_sum_mm,snowfall_sum_cm,sunrise_iso8601,sunset_iso8601,temperature_max_celsius,temperature_min_celsius,uv_index_max,wind_speed_max_kmh
+          style: form
+          explode: false
+      responses:
+        200:
+          description: No response body
+        400:
+          description: Bad request. Invalid data provided
+        404:
+          description: Resource with specified UUID was not found
+        424:
+          description: Application is unable to return data due to dependency error
+        500:
+          description: Internal server error
+  /api/geocoding:
+    get:
+      summary: City lookup
+      operationId: api_v1_geocoding_retrieve
+      description: Obtain city by name match, or the closest match to lat and lon coordinates.
+      tags:
+        - Public
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - name: city
+          in: query
+          description: City name
+          required: false
+          schema:
+            type: string
+          example: Tokyo
+        - name: lat
+          in: query
+          description: latitude
+          required: false
+          schema:
+            type: number
+            format: float
+          example: 35.689500
+        - name: lon
+          in: query
+          description: longitude
+          required: false
+          schema:
+            type: number
+            format: float
+          example: 139.691700
+        - name: fields
+          in: query
+          description: Fields to return
+          required: false
+          schema:
+            type: string
+            default: uuid,name,country,region,timezone,latitude,longitude
+          style: form
+          explode: false
+      x-required-group:
+        - required: [lat, lon]
+        - required: [city]
+      responses:
+        200:
+          description: No response body
+        400:
+          description: Resource with specified UUID was not found
+        404:
+          description: City not found
+        500:
+          description: Internal server error
+  /api/history:
+    get:
+      summary: Historical weather data
+      operationId: api_v1_history_retrieve
+      description: Obtain historical weather data for a given city.
+      tags:
+        - Public
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+        - name: city_uuid
+          in: query
+          description: City's uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 337aefdd-0694-40c1-a646-5ac4d6addc93
+        - name: start_date
+          in: query
+          description: Start date
+          required: false
+          schema:
+            type: string
+            format: date
+          example: 2023-01-01
+        - name: end_date
+          in: query
+          description: End date
+          required: false
+          schema:
+            type: string
+            format: date
+          example: 2023-08-01
+      responses:
+        200:
+          description: OK
+        400:
+          description: Bad request. Invalid data provided
+        404:
+          description: Resource with specified UUID was not found
+        500:
+          description: Internal server error
+  /api/seed:
+    put:
+      summary: Populate application
+      operationId: api_v1_seed_update
+      description: Seed weather history for all cities, or a specific city.
+      tags:
+        - Private
+      parameters:
+        - name: version
+          in: query
+          description: API version
+          required: false
+          schema:
+            type: string
+            default: v1
+          style: form
+          explode: false
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                city_uuid:
+                  type: string
+                  format: uuid
+                  examples:
+                    - 337aefdd-0694-40c1-a646-5ac4d6addc93d
+                year:
+                  type: integer
+                  format: number
+                  default: 2024 # current year
+                  minimum: 1940
+                  maximum: 2024
+      responses:
+        204:
+          description: No response body
+        401:
+          description: Authentication credentials were not provided
+        404:
+          description: Requested city or cities not found
+        424:
+          description: Application is unable to return data due to dependency error
+        500:
+          description: Internal server error
+components:
+  schemas:
+    City:
+      type: object
+      description: Serializer takes `fields` argument that controls which fields should be displayed.
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+        country:
+          type: string
+        region:
+          type: string
+        timezone:
+          type: string
+        latitude:
+          type: string
+          format: float
+        longitude:
+          type: string
+          format: float
+      required:
+        - name
+        - country
+        - region
+        - timezone
+        - latitude
+        - longitude
+    Forecast:
+      type: object
+      description: Serializer takes `fields` argument that controls which fields should be displayed.
+      properties:
+        city_uuid:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        rain_sum_mm:
+          type: string
+          format: decimal
+        showers_sum_mm:
+          type: string
+          format: decimal
+        snowfall_sum_cm:
+          type: string
+          format: decimal
+        sunrise_iso8601:
+          type: string
+          format: date-time
+        sunset_iso8601:
+          type: string
+          format: date-time
+        temperature_max_celsius:
+          type: string
+          format: decimal
+        temperature_min_celsius:
+          type: string
+          format: decimal
+        uv_index_max:
+          type: string
+          format: decimal
+        wind_speed_max_kmh:
+          type: string
+          format: decimal
+      required:
+        - city_uuid
+        - date
+        - sunrise_iso8601
+        - sunset_iso8601
+    History:
+      type: object
+      description: Serializer takes `fields` argument that controls which fields should be displayed.
+      properties:
+        city_uuid:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          format: date
+        rain_sum_mm:
+          type: string
+          format: decimal
+        snowfall_sum_cm:
+          type: string
+          format: decimal
+        sunrise_iso8601:
+          type: string
+          format: date-time
+        sunset_iso8601:
+          type: string
+          format: date-time
+        temperature_max_celsius:
+          type: string
+          format: decimal
+        temperature_min_celesius:
+          type: string
+          format: decimal
+        wind_speed_max_kmh:
+          type: string
+          format: decimal
+      required:
+        - uuid
+        - date
+        - sunrise_iso8601
+        - sunset_iso8601
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: JSON Web Token (JWT) authentication with required prefix "Bearer"

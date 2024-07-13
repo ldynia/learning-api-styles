@@ -1,0 +1,40 @@
+services:
+  client:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN  # needed by ip
+    command: bash -c "echo $(date --iso-8601=seconds) Ready for you to start a gRPC client manually && sleep infinity"
+    container_name: grpc_client
+    hostname: grpc-client
+    image: grpc-client
+    init: true
+    networks:
+      - django_shared
+      - grpc_internal
+    volumes:
+      - ./:/usr/src/grpc
+
+  server:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN  # needed by ip
+    command: bash -c "echo $(date --iso-8601=seconds) Ready for you to start a gRPC server manually && sleep infinity"
+    container_name: grpc_server
+    hostname: grpc-server
+    image: grpc-server
+    init: true
+    networks:
+      - django_shared
+      - grpc_internal
+    volumes:
+      - ./:/usr/src/grpc
+
+networks:
+  django_shared:
+    name: django_shared
+  grpc_internal:
+    name: grpc_internal

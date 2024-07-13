@@ -1,0 +1,61 @@
+﻿asyncapi: 2.6.0
+info:
+  title: Pub Sub
+  version: '1.0.0'
+  description: |
+    Implementation of pub sub inspired by this [tutorial](https://www.rabbitmq.com/tutorials/tutorial-three-python.html).
+
+defaultContentType: application/json
+
+servers:
+  development:
+    url: broker:5671
+    protocol: amqp
+    description: RabbitMQ broker development server.
+    security:
+      - user-password: []
+      - certificates: []
+
+channels:
+  discount:
+    description: Exchange for discount messages.
+    publish:
+      bindings:
+        amqp:
+          is: routingKey
+          exchange:
+            name: discount
+            type: fanout
+            vhost: /
+      message:
+        contentEncoding: utf-8
+        $ref: '#/components/messages/discountMsg'
+    subscribe:
+      bindings:
+        amqp:
+          is: routingKey
+          exchange:
+            name: discount
+            type: fanout
+            vhost: /
+      message:
+        contentEncoding: utf-8
+        $ref: '#/components/messages/discountMsg'
+
+components:
+  messages:
+    discountMsg:
+      name: discountMsg
+      title: discountMsg
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          message:
+            type: string
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+    certificates:
+      type: X509

@@ -1,0 +1,93 @@
+asyncapi: 3.0.0
+defaultContentType: application/json
+info:
+  title: Weather Forecast Service - WebSocket API
+  version: v1
+operations:
+  receiveAlert:
+    action: receive
+    summary: Receive message from alert channel
+    channel:
+      $ref: '#/channels/alert'
+    bindings:
+      ws:
+        query:
+          type: object
+          required:
+            - access_token
+            - city_uuid
+          properties:
+            access_token:
+              type: string
+              description: JWT
+            city_uuid:
+              type: string
+              description: City's UUID
+  sendChat:
+    action: send
+    summary: Send message to chat channel
+    channel:
+      $ref: '#/channels/chat'
+    bindings:
+      ws:
+        query:
+          type: object
+          required:
+            - access_token
+            - city_uuid
+          properties:
+            access_token:
+              type: string
+              description: Access Token (Base64 encoded JWT)
+            city_uuid:
+              type: string
+              description: City's UUID
+  receiveChat:
+    action: receive
+    summary: Receive message from chat channel
+    channel:
+      $ref: '#/channels/chat'
+  sendEcho:
+    action: send
+    summary: Send message to echo channel
+    channel:
+      $ref: '#/channels/echo'
+  receiveEcho:
+    action: receive
+    summary: Receive message from echo channel
+    channel:
+      $ref: '#/channels/echo'
+channels:
+  alert:
+    address: /ws/v1/alert
+    messages:
+      genericMessage:
+        $ref: '#/components/messages/genericMessage'
+  chat:
+    address: /ws/v1/chat
+    messages:
+      genericMessage:
+        $ref: '#/components/messages/genericMessage'
+  echo:
+    address: /ws/v1/echo
+    messages:
+      genericMessage:
+        $ref: '#/components/messages/genericMessage'
+components:
+  securitySchemes:
+    token:
+      type: httpApiKey
+      description: Required ONLY for authenticated channels
+      name: access_token
+      in: query
+  messages:
+    genericMessage:
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - message
+        properties:
+          message:
+            type: string
+            description: The message

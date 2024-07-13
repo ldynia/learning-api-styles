@@ -1,0 +1,139 @@
+services:
+  init:
+    image: python:3.13-bookworm
+    container_name: rabbitmq-init
+    command: bash -c "bash /usr/src/certs.sh && sleep infinity"
+    working_dir: /usr/src
+    networks:
+      rabbitmq:
+        ipv4_address: 192.168.16.6
+    volumes:
+      - ./src/scripts/certs.sh:/usr/src/certs.sh
+      - certificates:/etc/rabbitmq/ssl:rw
+    healthcheck:
+      test: ["CMD-SHELL", "test -r /etc/rabbitmq/ssl/private/ca_key.pem"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  broker:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq-broker
+    hostname: rabbitmq-broker
+    restart: on-failure
+    # Never store credentials in the source code!
+    environment:
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-bunny}
+      - RABBITMQ_USER=bugs
+    networks:
+      rabbitmq:
+        ipv4_address: 192.168.16.2
+    ports:
+      - 127.0.0.1:15672:15672
+    volumes:
+      - ./src/config/etc/rabbitmq/conf.d/10-defaults.conf:/etc/rabbitmq/conf.d/10-defaults.conf
+      - certificates:/etc/rabbitmq/ssl:ro
+    depends_on:
+      init:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  producer:
+    image: python:3.13-bookworm
+    container_name: rabbitmq-producer
+    hostname: rabbitmq-producer
+    command: bash -c "bash /usr/src/scripts/startup.sh && sleep infinity"
+    # Never store credentials in the source code!
+    environment:
+      - RABBITMQ_BROKER=broker
+      - RABBITMQ_EXCHANGE_TYPE=fanout
+      - RABBITMQ_EXCHANGE=discount
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-bunny}
+      - RABBITMQ_USER=bugs
+      - TLS_ENABLE=1
+    networks:
+      rabbitmq:
+        ipv4_address: 192.168.16.3
+    volumes:
+      - ./src:/usr/src
+      - certificates:/etc/rabbitmq/ssl:ro
+    depends_on:
+      broker:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -m pip show pika"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  consumer-a:
+    image: python:3.13-bookworm
+    container_name: rabbitmq-consumer-a
+    hostname: rabbitmq-consumer-a
+    command: bash -c "bash /usr/src/scripts/startup.sh && sleep infinity"
+    # Never store credentials in the source code!
+    environment:
+      - RABBITMQ_BROKER=broker
+      - RABBITMQ_EXCHANGE_TYPE=fanout
+      - RABBITMQ_EXCHANGE=discount
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-bunny}
+      - RABBITMQ_USER=bugs
+      - TLS_ENABLE=1
+    networks:
+      rabbitmq:
+        ipv4_address: 192.168.16.4
+    volumes:
+      - ./src:/usr/src
+      - certificates:/etc/rabbitmq/ssl:ro
+    depends_on:
+      broker:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -m pip show pika"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  consumer-b:
+    image: python:3.13-bookworm
+    container_name: rabbitmq-consumer-b
+    hostname: rabbitmq-consumer-b
+    command: bash -c "bash /usr/src/scripts/startup.sh && sleep infinity"
+    # Never store credentials in the source code!
+    environment:
+      - RABBITMQ_BROKER=broker
+      - RABBITMQ_EXCHANGE_TYPE=fanout
+      - RABBITMQ_EXCHANGE=discount
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-bunny}
+      - RABBITMQ_USER=bugs
+      - TLS_ENABLE=1
+    networks:
+      rabbitmq:
+        ipv4_address: 192.168.16.5
+    volumes:
+      - ./src:/usr/src
+      - certificates:/etc/rabbitmq/ssl:ro
+    depends_on:
+      broker:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -m pip show pika"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  certificates:
+    name: rabbitmq-certs
+
+networks:
+  rabbitmq:
+    name: rabbitmq
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.16.0/28

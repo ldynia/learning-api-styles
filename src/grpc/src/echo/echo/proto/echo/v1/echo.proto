@@ -1,0 +1,69 @@
+// tag::use_proto3_syntax[]
+syntax = "proto3"; // <1>
+// end::use_proto3_syntax[]
+
+// tag::version_the_echo_package[]
+package echo.v1; // <2>
+// end::version_the_echo_package[]
+
+// tag::define_demounary_messages[]
+message DemoUnaryRequest { // <3>
+  // The text content of the request. // <4>
+  string content = 1; // <5>
+}
+
+message DemoUnaryResponse { // <6>
+  // The text content of the response.
+  string content = 1;
+}
+// end::define_demounary_messages[]
+
+// tag::define_demoserverstreaming_messages[]
+message DemoServerStreamingRequest {
+  // The text content of the request.
+  string content = 1;
+}
+
+message DemoServerStreamingResponse {
+  // The text content of the response.
+  string content = 1;
+}
+// end::define_demoserverstreaming_messages[]
+
+message DemoClientStreamingRequest {
+  // The text content of the request.
+  string content = 1;
+}
+
+message DemoClientStreamingResponse {
+  // The text content of the response.
+  string content = 1;
+}
+
+message DemoBidirectionalStreamingRequest {
+  // The text content of the request.
+  string content = 1;
+}
+
+message DemoBidirectionalStreamingResponse {
+  // The text content of the response.
+  string content = 1;
+}
+
+// tag::define_echoservice[]
+// The service echoes back the content received from the client. // <7>
+service EchoService { // <8>
+  // end::define_echoservice[]
+  // tag::define_demounary_method[]
+  // This method demonstrates unary RPC.
+  rpc DemoUnary(DemoUnaryRequest) returns (DemoUnaryResponse); // <9>
+  // end::define_demounary_method[]
+  // This method demonstrates server streaming RPC.
+  rpc DemoServerStreaming(DemoServerStreamingRequest) returns (stream DemoServerStreamingResponse);
+  // This method demonstrates client streaming RPC.
+  rpc DemoClientStreaming(stream DemoClientStreamingRequest) returns (DemoClientStreamingResponse);
+  // This method demonstrates bidirectional streaming RPC.
+  rpc DemoBidirectionalStreaming(stream DemoBidirectionalStreamingRequest) returns (stream DemoBidirectionalStreamingResponse);
+  // tag::end_echoservice[]
+}
+// end::end_echoservice[]

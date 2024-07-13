@@ -1,0 +1,60 @@
+asyncapi: 3.0.0
+defaultContentType: application/json
+info:
+  title: Work Queue
+  version: 1.0.0
+  description: Work queue lab documentation.
+channels:
+  Die:
+    description: Die Queue
+    address: die
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          contentEncoding: utf-8
+          durable: true
+          name: die
+          vhost: /
+    messages:
+      Roll:
+        $ref: '#/components/messages/RollDie'
+operations:
+  Roll:
+    action: send
+    channel:
+      $ref: '#/channels/Die'
+    bindings:
+      amqp:
+        deliveryMode: 2 # 1 - transient; 2 - persistent
+  Pick:
+    action: receive
+    channel:
+      $ref: '#/channels/Die'
+    bindings:
+      amqp:
+        ack: true
+components:
+  messages:
+    RollDie:
+      name: Roll Die
+      title: Roll Die
+      headers:
+        type: object
+        properties:
+          version:
+            type: string
+            default: 1.0.0
+      payload:
+        type: object
+        properties:
+          data:
+            type: object
+            properties:
+              count:
+                type: string
+              message:
+                type: string
+          version:
+            type: string
+            default: 1.0.0

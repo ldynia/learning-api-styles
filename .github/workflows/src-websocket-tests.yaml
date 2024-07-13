@@ -1,0 +1,29 @@
+name: src/django websocket tests
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/src-websocket-tests.yaml'
+      - 'src/django/**'
+  schedule:
+    - cron: '0 3 1 * *'  # First day of the month at 3 a.m.
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: test - e2e
+        run: |
+          set -eo pipefail
+          cd src/django
+          bash app/scripts/websocket-tests-e2e.sh
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"

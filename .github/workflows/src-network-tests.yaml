@@ -1,0 +1,62 @@
+name: src/network tests
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/src-network-tests.yaml'
+      - 'src/network/**'
+  schedule:
+    - cron: '0 3 1 * *'  # First day of the month at 3 a.m.
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: tests/tcp_echo.sh netcat
+        run: |
+          set -eo pipefail
+          cd src/network
+          bash tests/tcp_echo.sh netcat
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/tcp_echo.sh scapy
+        run: |
+          set -eo pipefail
+          cd src/network
+          bash tests/tcp_echo.sh scapy
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/tcp_echo.sh python
+        run: |
+          set -eo pipefail
+          cd src/network
+          bash tests/tcp_echo.sh python
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/tcp_echo.sh openssl
+        run: |
+          set -eo pipefail
+          cd src/network
+          bash tests/tcp_echo.sh openssl
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"

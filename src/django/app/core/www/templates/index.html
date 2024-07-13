@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Forecast Service</title>
+  <link rel="shortcut icon" href="#" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap/dist/css/bootstrap.min.css">
+  <style>
+    h1 { font-size: 4rem; }
+  </style>
+</head>
+<body>
+  <div class="container center-container">
+    <div class="row">
+      <div class="col text-center">
+        <h1>Weather Forecast Service APIs</h1>
+        <p>Environment: {{ env }}</p>
+      </div>
+    </div>
+    <div class="row">
+      <table class="table table-borderless table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th scope="col">API Style</th>
+            <th scope="col">Endpoint</th>
+            <th scope="col">Methods</th>
+            <th scope="col">Response Content Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-primary">
+            <td>www</td>
+            <td><a href="/">/</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-primary">
+            <td>www</td>
+            <td><a href="/admin" title="username: admin, password: admin">/admin</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-secondary">
+            <td>Atom</td>
+            <td><a href="/forecast/feed">/forecast/feed</a></td>
+            <td>GET</td>
+            <td>application/atom+xml</td>
+          </tr>
+          <tr class="table-secondary">
+            <td>Atom</td>
+            <td>
+              <a href="/forecast/feed_enriched">/forecast/feed_enriched</a>
+              <br>
+              To work, starting the gRPC server manually is required! For details, check the chapter's gRPC implementation.
+            </td>
+            <td>GET</td>
+            <td>application/atom+xml</td>
+          </tr>
+          <tr class="table-secondary">
+            <td>Atom</td>
+            <td><a href="/forecast/{{ city.uuid }}">/forecast/{{ city.uuid }}</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-success">
+            <td>GraphQL</td>
+            <td><a href="/graphql">/graphql</a></td>
+            <td>POST</td>
+            <td>application/json</td>
+          </tr>
+          {% if env == "development" %}
+          <tr class="table-success">
+            <td>GraphiQL</td>
+            <td><a href="/graphiql">/graphiql</a></td>
+            <td>GET, POST</td>
+            <td>text/html</td>
+          </tr>
+          {% endif %}
+          <tr class="table-danger">
+            <td>Webhooks</td>
+            <td>/webhook/v1/echo</td>
+            <td>POST</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-danger">
+            <td>Webhooks</td>
+            <td>/webhook/v2/echo</td>
+            <td>POST</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-danger">
+            <td>Webhooks</td>
+            <td>/webhook/v3/echo</td>
+            <td>POST</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (client)</td>
+            <td><a href="/websocket/alert?city_uuid={{ city.uuid }}">/websocket/alert?city_uuid={{ city.uuid }}</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (client)</td>
+            <td><a href="/websocket/chat?city_uuid={{ city.uuid }}">/websocket/chat?city_uuid={{ city.uuid }}</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (client)</td>
+            <td><a href="/websocket/echo">/websocket/echo</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (docs)</td>
+            <td><a href="/websocket/docs/schema/manual">/websocket/docs/schema/manual</a></td>
+            <td>GET</td>
+            <td>application/yaml</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (server)</td>
+            <td>/ws/v1/alert</td>
+            <td>Protocol Switch</td>
+            <td>JSON</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (server)</td>
+            <td>/ws/v1/chat</td>
+            <td>Protocol Switch</td>
+            <td>JSON</td>
+          </tr>
+          <tr class="table-warning">
+            <td>WebSocket (server)</td>
+            <td>/ws/v1/echo</td>
+            <td>Protocol Switch</td>
+            <td>JSON</td>
+          </tr>
+          <tr class="table-success">
+            <td>Event Source</td>
+            <td><a href="/sse/alert?city_uuid={{ city.uuid }}">/sse/alert?city_uuid={{ city.uuid }}</a></td>
+            <td>GET</td>
+            <td>text/plain</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST</td>
+            <td><a href="/api/cities">/api/cities</a></td>
+            <td>GET, POST</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST</td>
+            <td><a href="/api/cities/{{ city.uuid }}">/api/cities/{{ city.uuid }}</a></td>
+            <td>GET, PATCH, PUT, DELETE</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST</td>
+            <td><a href="/api/forecasts?city_uuid={{ city.uuid }}">/api/forecasts?city_uuid={{ city.uuid }}</a></td>
+            <td>GET</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST</td>
+            <td><a href="/api/geocoding?lat={{ city.latitude }}&lon={{ city.longitude }}">/api/geocoding?lat={{ city.latitude }}&lon={{ city.longitude }}</a></td>
+            <td>GET</td>
+            <td>application/json</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST</td>
+            <td><a href="/api/history?city_uuid={{ city.uuid }}">/api/history?city_uuid={{ city.uuid }}</a></td>
+            <td>GET</td>
+            <td>application/json</td>
+          </tr>
+          {% if env == "development" %}
+          <tr class="table-info">
+            <td>REST</td>
+            <td><a href="/api/seed">/api/seed</a></td>
+            <td>PUT</td>
+            <td>application/json</td>
+          </tr>
+          {% endif %}
+          <tr class="table-info">
+            <td>REST (docs)</td>
+            <td><a href="/api/docs/v1">/api/docs/v1</a></td>
+            <td>GET</td>
+            <td>text/html</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST (docs)</td>
+            <td><a href="/api/docs/v1/schema/auto">/api/docs/v1/schema/auto</a></td>
+            <td>GET</td>
+            <td>application/vnd.oai.openapi</td>
+          </tr>
+          <tr class="table-info">
+            <td>REST (docs)</td>
+            <td><a href="/api/docs/v1/schema/manual">/api/docs/v1/schema/manual</a></td>
+            <td>GET</td>
+            <td>application/yaml</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

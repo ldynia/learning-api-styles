@@ -1,0 +1,174 @@
+name: src/grpc tests
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/src-grpc-tests.yaml'
+      - 'src/django/**'
+      - 'src/grpc/**'
+  schedule:
+    - cron: '0 3 1 * *'  # First day of the month at 3 a.m.
+
+jobs:
+  echo-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: tests/echo.sh unary insecure
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/echo.sh unary insecure
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/echo.sh server_streaming insecure
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/echo.sh server_streaming insecure
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/echo.sh client_streaming insecure
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/echo.sh client_streaming insecure
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/echo.sh bidirectional_streaming insecure
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/echo.sh bidirectional_streaming insecure
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/echo.sh unary mtls
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/echo.sh unary mtls
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+  enricher-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: tests/enricher.sh caching
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/enricher.sh caching
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/enricher.sh basic_error_status
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/enricher.sh basic_error_status
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/enricher.sh rich_error_status
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/enricher.sh rich_error_status
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/enricher.sh deadline
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/enricher.sh deadline
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/enricher.sh reflection
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/enricher.sh reflection
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+  atom-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: tests/atom.sh warmup
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/atom.sh warmup
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/atom.sh newsboat
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/atom.sh newsboat
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/atom.sh django
+        run: |
+          set -eo pipefail
+          cd src/grpc
+          bash tests/atom.sh django
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"

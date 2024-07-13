@@ -1,0 +1,8 @@
+[
+  { "id" : 1, "name" : "Cairo", "country" : "Egypt", "region" : "Africa", "timezone" : "Africa\/Cairo", "latitude" : 30.062630, "longitude" : 31.249670 },
+  { "id" : 2, "name" : "Istanbul", "country" : "Turkey", "region" : "Asia", "timezone" : "Europe\/Istanbul", "latitude" : 41.008200, "longitude" : 28.978400 },
+  { "id" : 3, "name" : "Mexico City", "country" : "Mexico", "region" : "North America", "timezone" : "America\/Mexico_City", "latitude" : 19.432600, "longitude" : -99.133200 },
+  { "id" : 4, "name" : "Sao Paulo", "country" : "Brazil", "region" : "South America", "timezone" : "America\/Sao_Paulo", "latitude" : -23.550500, "longitude" : -46.633300 },
+  { "id" : 5, "name" : "Sydney", "country" : "Australia", "region" : "Oceania", "timezone" : "Australia\/Sydney", "latitude" : -33.868800, "longitude" : 151.209300 },
+  { "id" : 6, "name" : "Tokyo", "country" : "Japan", "region" : "Asia", "timezone" : "Asia\/Tokyo", "latitude" : 35.689500, "longitude" : 139.691700 }
+]

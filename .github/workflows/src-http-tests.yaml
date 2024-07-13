@@ -1,0 +1,126 @@
+name: src/http tests
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/src-http-tests.yaml'
+      - 'src/http/**'
+  schedule:
+    - cron: '0 3 1 * *'  # First day of the month at 3 a.m.
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: tests/http.sh http0.9
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh http0.9
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh http1.0
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh http1.0
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh firefox
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh firefox
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh tcp
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh tcp
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh iperf
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh iperf
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh http1.1
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh http1.1
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh h2c
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh h2c
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh tls
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh tls
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh http3
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh http3
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"

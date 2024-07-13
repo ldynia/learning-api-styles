@@ -1,0 +1,49 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Weather Forecast Service</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container-fluid">
+      <h1>{{ object_list.first.city.name }}</h1>
+      <h6>{{ object_list.first.city.uuid }}</h6>
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Temperature Max [°C]</th>
+            <th scope="col">Temperature Min [°C]</th>
+            <th scope="col">Uv Index Max</th>
+            <th scope="col">Wind Speed Max [km/h]</th>
+            <th scope="col">Rain [mm]</th>
+            <th scope="col">Showers [mm]</th>
+            <th scope="col">Snowfall [cm]</th>
+            <th scope="col">Sunrise</th>
+            <th scope="col">Sunset</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for obj in object_list %}
+          <tr>
+            <td>{{ obj.date | date:"d M Y" }}</td>
+            <td>{{ obj.temperature_max_celsius }}</td>
+            <td>{{ obj.temperature_min_celsius }}</td>
+            <td>{{ obj.uv_index_max }}</td>
+            <td>{{ obj.wind_speed_max_kmh }}</td>
+            <td>{{ obj.rain_sum_mm }}</td>
+            <td>{{ obj.showers_sum_mm }}</td>
+            <td>{{ obj.snowfall_sum_cm }}</td>
+            <td>{{ obj.sunrise_iso8601 | time:"G:i" }}</td>
+            <td>{{ obj.sunset_iso8601 | time:"G:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+  </body>
+</html>

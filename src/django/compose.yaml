@@ -1,0 +1,71 @@
+services:
+  app:
+    build:
+      context: ./app/
+      dockerfile: ../devops/docker/Dockerfile
+    image: django/app
+    container_name: django-app
+    hostname: django-app
+    networks:
+      - django_internal
+      - django_shared
+    ports:
+      - 127.0.0.1:8000:8000
+      - 127.0.0.1:8001:8001
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DEBUG=False
+      - DJANGO_SETTINGS_MODULE=config.postgres
+      # Avoid special characters since this value is not base64 encoded
+      - SECRET_KEY=${SECRET_KEY:-VKnroLzyyjvUk316fuyY2vO8jnrP6obbEjH75PGESQpf2Zwu2SJkGUme1cRj67Hz}
+      # Enable TLS by setting TLS_ENABLE=1
+      - TLS_ENABLE=0
+      # Avoid special characters since this value is not base64 encoded
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET:-a0tObtQBvNhQjRSbPRZrIkXiooIH2ucIZJeESrRcIFyYOtSV8FKWrAri8djp3CQd}
+      - POSTGRES_DB=weather_forecast_service
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_USER=postgres
+    volumes:
+       - ./app:/usr/src
+       - ./docs:/usr/src/docs
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: django-postgres
+    hostname: django-postgres
+    networks:
+      - django_internal
+    ports:
+      - 127.0.0.1:5432:5432
+    environment:
+      - POSTGRES_DB=weather_forecast_service
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:8-alpine
+    container_name: django-redis
+    hostname: django-redis
+    networks:
+      - django_internal
+    ports:
+      - 127.0.0.1:6379:6379
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+networks:
+  django_internal:
+    name: django_internal
+  django_shared:
+    name: django_shared

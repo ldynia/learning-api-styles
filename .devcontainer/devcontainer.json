@@ -1,0 +1,31 @@
+﻿{
+  "name": "Python 3.11",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "32gb"
+
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {"version": "latest"},
+    "ghcr.io/devcontainers/features/node:1": {"version": "latest"}
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "README.md"
+      ]
+    },
+    "vscode": {
+      "extensions": [
+        "DavidAnson.vscode-markdownlint",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml"
+      ]
+    }
+  },
+  "postCreateCommand": ".devcontainer/scripts/init.sh",
+  "postStartCommand": ".devcontainer/scripts/startup.sh"
+}

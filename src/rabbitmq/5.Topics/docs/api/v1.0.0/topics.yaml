@@ -1,0 +1,73 @@
+﻿asyncapi: 2.6.0
+info:
+  title: Topics
+  version: '1.0.0'
+  description: |
+    Implementation of topics inspired by this [tutorial](https://www.rabbitmq.com/tutorials/https://www.rabbitmq.com/tutorials/tutorial-five-python.html).
+
+defaultContentType: application/json
+
+servers:
+  development:
+    url: broker:5671
+    protocol: amqp
+    description: RabbitMQ broker development server.
+    security:
+      - user-password: []
+      - certificates: []
+
+channels:
+  logs:
+    publish:
+      description: |
+        Exchange can send messages to following routing keys / topics:
+        - kernel.info
+        - kernel.warning
+        - kernel.error
+        - cpu.critical
+        - memory.critical
+        - storage.critical
+      bindings:
+        amqp:
+          is: routingKey
+          exchange:
+            name: logs
+            type: topic
+            vhost: /
+      message:
+        contentEncoding: utf-8
+        $ref: '#/components/messages/logMsg'
+    subscribe:
+      description: |
+        Exchange can receive messages on following routing keys / topics:
+        - '#'
+        - 'kernel.*'
+        - '*.critical'
+      bindings:
+        amqp:
+          is: routingKey
+          exchange:
+            name: logs
+            type: topic
+            vhost: /
+      message:
+        contentEncoding: utf-8
+        $ref: '#/components/messages/logMsg'
+
+components:
+  messages:
+    logMsg:
+      name: logMsg
+      title: logMsg
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          message:
+            type: string
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+    certificates:
+      type: X509

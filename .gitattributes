@@ -1,0 +1,17 @@
+* text    eol=lf
+*.doc     binary
+*.docx    binary
+*.gif     binary
+*.gz      binary
+*.jpg     binary
+*.mp3     binary
+*.mp4     binary
+*.pcap    binary
+*.pcapng  binary
+*.pdf     binary
+*.png     binary
+*.ppt     binary
+*.pptx    binary
+*.xcf     binary
+*.xz      binary
+*.zip     binary

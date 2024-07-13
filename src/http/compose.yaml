@@ -1,0 +1,57 @@
+services:
+  client:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN  # needed by ip
+    command: bash -c "sleep infinity"
+    container_name: http_client
+    depends_on:
+      - http-server      
+      - https-server
+    hostname: client
+    image: http-client
+    init: true
+    networks:
+      network:
+        ipv4_address: 192.168.114.2
+    # Minimum, Default, Maximum receive/send buffer size.
+    # Default send buffer size can be smaller.
+    sysctls:
+      - net.ipv4.tcp_rmem=4096 65535 131072
+      - net.ipv4.tcp_wmem=4096 32768 131072
+    volumes:
+      - ./:/usr/src/http
+
+  http-server:
+    container_name: http_http-server
+    hostname: http-server
+    image: httpd
+    init: true
+    networks:
+      network:
+        ipv4_address: 192.168.114.3
+    volumes:
+      - ./:/usr/src/http
+
+  https-server:
+    container_name: http_https-server
+    hostname: https-server
+    image: nginx
+    init: true
+    networks:
+      network:
+        ipv4_address: 192.168.114.4
+    volumes:
+      - ./nginx:/srv
+      - ./:/usr/src/http
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.114.0/24
+          gateway: 192.168.114.1

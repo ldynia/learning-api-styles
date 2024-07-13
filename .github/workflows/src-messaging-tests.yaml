@@ -1,0 +1,60 @@
+name: src/messaging tests
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - '.github/workflows/src-messaging-tests.yaml'
+      - 'src/rabbitmq/**'
+  schedule:
+    - cron: '0 3 1 * *'  # First day of the month at 3 a.m.
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lab:
+          - path: 'src/rabbitmq/1.SimpleQueue'
+            service: 'producer'
+          - path: 'src/rabbitmq/2.WorkQueue'
+            service: 'producer'
+          - path: 'src/rabbitmq/3.PubSub'
+            service: 'producer'
+          - path: 'src/rabbitmq/4.Routing'
+            service: 'producer'
+          - path: 'src/rabbitmq/5.Topics'
+            service: 'producer'
+          - path: 'src/rabbitmq/6.RequestResponse'
+            service: 'client'
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: e2e test
+        run: |
+          set -eo pipefail
+          cd ${{ matrix.lab.path }}
+          bash src/scripts/rabbitmq-tests-e2e.sh
+
+      - name: debug
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: unit test
+        run: |
+          set -eo pipefail
+          cd ${{ matrix.lab.path }}
+
+          if [[ "${{ matrix.lab.path }}" != "src/rabbitmq/4.Routing" ]]; then
+            docker compose exec ${{ matrix.lab.service }} bash -c "python3 -m unittest discover /usr/src"
+          else
+            docker compose exec producer python -m unittest /usr/src/tests/test_producer.py
+            docker compose exec consumer-a python -m unittest /usr/src/tests/test_consumer.py
+          fi
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"

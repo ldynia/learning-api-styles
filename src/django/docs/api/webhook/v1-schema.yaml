@@ -1,0 +1,111 @@
+openapi: 3.1.0 # <1>
+info:
+  title: WFS CLI's webhooks
+  description: Webhooks (events) triggered by WFS's CLI.
+  version: v1
+webhooks: # <2>
+  dummy.event: # <2>
+    post: # <2>
+      summary: Dummy event created in source service
+      description: |
+        Webhook initiated by the source service (API provider),
+        and expected responses from the destination service (API consumer).
+
+        **Warning:** Response from destination services other than 2XX
+        status code is treated as failed webhook.
+      parameters: # <3>
+        - $ref: '#/components/parameters/WebhookId'
+        - $ref: '#/components/parameters/WebhookSignature'
+        - $ref: '#/components/parameters/WebhookTimestamp'
+      requestBody: # <4>
+        $ref: '#/components/requestBodies/Event'
+      responses: # <5>
+        200:
+          $ref: '#/components/responses/OK'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        413:
+          $ref: '#/components/responses/ContentTooLarge'
+components:
+  parameters: # <3>
+    WebhookId:
+      name: Webhook-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    WebhookSignature:
+      name: Webhook-Signature
+      in: header
+      required: true
+      schema:
+        type: string
+    WebhookTimestamp:
+      name: Webhook-Timestamp
+      in: header
+      required: true
+      schema:
+        type: string
+  requestBodies: # <4>
+    Event:
+      description: Event's JSON payload
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Event'
+          examples:
+            dummy.event:
+              value:
+                type: dummy.event
+                timestamp: 1709111631
+                data:
+                  echo: test
+  responses: # <5>
+    OK:
+      description: Webhook was accepted by the destination service
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Event' # <6>
+    BadRequest:
+      description: Bad request -- webhook rejected by the destination service
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ContentTooLarge:
+      description: Content too large -- webhook rejected by the destination service
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized -- webhook rejected by the destination service
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas: # <6>
+      Event:
+        type: object
+        properties:
+          type:
+            type: string
+            description: The type of the event
+          timestamp:
+            type: string
+            description: The timestamp of the event
+          data:
+            type: object
+            description: The data associated with the event
+      Error:
+        type: object
+        properties:
+          errors:
+            type: array
+            description: The error message!
+            items:
+              type: string

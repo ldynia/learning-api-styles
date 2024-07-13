@@ -1,0 +1,59 @@
+﻿asyncapi: 2.6.0
+info:
+  title: RPC
+  version: '1.0.0'
+  description: |
+    Implementation of RPC inspired by this [tutorial](https://www.rabbitmq.com/tutorials/tutorial-six-python.html).
+
+defaultContentType: application/json
+
+servers:
+  development:
+    url: broker:5671
+    protocol: amqp
+    description: RabbitMQ broker development server.
+    security:
+      - user-password: []
+      - certificates: []
+
+channels:
+  fibonacci:
+    publish:
+      description: Publish to 'fibonacci' queue.
+      bindings:
+        amqp:
+          is: queue
+          queue:
+            name: fibonacci
+            vhost: /
+      message:
+        contentEncoding: utf-8
+        $ref: '#/components/messages/logMsg'
+    subscribe:
+      description: Subscribe to 'fibonacci' queue.
+      bindings:
+        amqp:
+          is: queue
+          queue:
+            name: fibonacci
+            vhost: /
+      message:
+        $ref: '#/components/messages/logMsg'
+
+components:
+  messages:
+    logMsg:
+      name: logMsg
+      title: logMsg
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          message:
+            type: string
+
+  securitySchemes:
+    user-password:
+      type: userPassword
+    certificates:
+      type: X509

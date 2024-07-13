@@ -1,0 +1,24 @@
+# ignore files
+.ash_history
+.bash_history
+.coverage
+.env.secrets
+response.json
+package-lock.json
+yarn.lock
+
+# ignore files by extension
+*.log
+*.py[c,d,o]
+*.sqlite3
+
+# ignore directories
+**/__pycache__/
+**/.cache/
+**/.pytest_cache/
+**/app/docs/
+**/node_modules/
+**/static/admin/
+**/static/debug_toolbar/
+**/static/django_extensions/
+**/static/rest_framework/

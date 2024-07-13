@@ -1,0 +1,72 @@
+services:
+  client:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN  # needed by iptables
+    command: bash -c "sleep infinity"
+    container_name: network_client
+    depends_on:
+      - router
+      - server
+    hostname: client
+    image: network-client
+    init: true
+    networks:
+      router_client:
+        ipv4_address: 192.168.112.3
+    volumes:
+      - ./:/usr/src/network
+
+  router:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN  # needed by iptables
+    command: bash -c "sleep infinity"
+    container_name: network_router
+    hostname: router
+    image: network-router
+    init: true
+    networks:
+      router_client:
+        ipv4_address: 192.168.112.2
+      router_server:
+        ipv4_address: 192.168.212.2
+    volumes:
+      - ./:/usr/src/network
+
+  server:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN  # needed by iptables
+    command: bash -c "sleep infinity"
+    container_name: network_server
+    hostname: server
+    image: network-server
+    init: true
+    networks:
+      router_server:
+        ipv4_address: 192.168.212.3
+    volumes:
+      - ./:/usr/src/network
+
+networks:
+  router_client:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.112.0/24
+          gateway: 192.168.112.1
+  router_server:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.212.0/24
+          gateway: 192.168.212.1
