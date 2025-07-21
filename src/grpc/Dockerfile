@@ -62,13 +62,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Additional required packages installed manually
-RUN curl -sL https://api.github.com/repos/fullstorydev/grpcurl/releases/latest | \
-    jq -r '.assets[] | .browser_download_url' | \
+RUN timeout 60 bash -c "while ! curl -sL https://api.github.com/repos/fullstorydev/grpcurl/releases/latest | \
+    jq -e -r '.assets[] | .browser_download_url'; do echo Retrying api.github.com/repos/fullstorydev/grpcurl && sleep 5; done" | \
     grep deb | grep -E "$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')" | \
     tee /dev/tty | xargs curl -sL -o grpcurl.deb && \
     dpkg -i grpcurl.deb && rm -f grpcurl.deb && which grpcurl && grpcurl --version
-RUN curl -sL https://api.github.com/repos/bufbuild/buf/releases/latest | \
-    jq -r '.assets[] | .browser_download_url' | \
+RUN timeout 60 bash -c "while ! curl -sL https://api.github.com/repos/bufbuild/buf/releases/latest | \
+    jq -e -r '.assets[] | .browser_download_url'; do echo Retrying https://api.github.com/repos/bufbuild/buf && sleep 5; done" | \
     grep Linux | grep -E "$(uname -m)\.tar\.gz" | \
     tee /dev/tty | xargs curl -sL | \
     tar -xvzf - -C /usr/local --strip-components 1 && which buf && buf --version
