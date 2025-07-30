@@ -32,58 +32,59 @@ class CityMutation:
     update_city: CityType = update(CityInputPartial, key_attr="uuid", permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["update_city"])
     delete_city: CityType = delete(UUIDInput, key_attr="uuid", permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["delete_city"])
 
-    # # KEEP THIS CODE - Solution for GraphQL exercise no.1
-    # @field(permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["create_city"])
-    # def create_city(self, info: Info, data: CityInput) -> CityType:
-    #     data = normalize_city_input(data)
 
-    #     serializer = CitySerializer(data=data)
-    #     if not serializer.is_valid():
-    #         errors = get_serializer_errors(serializer)
-    #         if errors:
-    #             raise Exception(errors[0])
+@strawberry.type
+class CustomCityMutation:
 
-    #     try:
-    #         return serializer.save()
-    #     except Exception:
-    #         raise Exception(DOCS["errors"]["create_failed"].format("City"))
+    @field(permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["create_city"])
+    def create_city(self, info: Info, data: CityInput) -> CityType:
+        data = normalize_city_input(data)
 
-    # # KEEP THIS CODE - Solution for GraphQL exercise no.1
-    # @field(permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["update_city"])
-    # def update_city(self, info: Info, data: CityInputPartial) -> CityType:
-    #     city = CityRepository.get_by_id(data.uuid)
-    #     if not city:
-    #         raise Exception(DOCS["errors"]["not_found"].format("City", data.uuid))
+        serializer = CitySerializer(data=data)
+        if not serializer.is_valid():
+            errors = get_serializer_errors(serializer)
+            if errors:
+                raise Exception(errors[0])
 
-    #     data = normalize_city_input(data)
+        try:
+            return serializer.save()
+        except Exception:
+            raise Exception(DOCS["errors"]["create_failed"].format("City"))
 
-    #     serializer = CitySerializer(city, data=data, partial=True)
-    #     if not serializer.is_valid():
-    #         errors = get_serializer_errors(serializer)
-    #         if errors:
-    #             raise Exception(errors[0])
-    #     try:
-    #         return serializer.save()
-    #     except Exception:
-    #         raise Exception(DOCS["errors"]["update_failed"].format("City", data.uuid))
+    @field(permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["update_city"])
+    def update_city(self, info: Info, data: CityInputPartial) -> CityType:
+        city = CityRepository.get_by_id(data.uuid)
+        if not city:
+            raise Exception(DOCS["errors"]["not_found"].format("City", data.uuid))
 
-    # # KEEP THIS CODE - Solution for GraphQL exercise no.1
-    # @field(permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["delete_city"])
-    # def delete_city(self, info: Info, data: UUIDInput) -> CityType:
-    #     try:
-    #         city = CityRepository.get_by_id(data.uuid)
-    #     except Exception:
-    #         raise Exception([DOCS["errors"]["read_failed"].format("City")])
+        data = normalize_city_input(data)
 
-    #     if not city:
-    #         raise Exception(DOCS["errors"]["not_found"].format("City", data.uuid))
+        serializer = CitySerializer(city, data=data, partial=True)
+        if not serializer.is_valid():
+            errors = get_serializer_errors(serializer)
+            if errors:
+                raise Exception(errors[0])
+        try:
+            return serializer.save()
+        except Exception:
+            raise Exception(DOCS["errors"]["update_failed"].format("City", data.uuid))
 
-    #     city = CityRepository.delete(city.uuid, data.soft_delete)
-    #     if not city:
-    #         return Exception([DOCS["errors"]["delete_failed"].format("City")])
+    @field(permission_classes=[IsAuthenticated, IsAdmin], description=DOCS["mutation"]["delete_city"])
+    def delete_city(self, info: Info, data: UUIDInput) -> CityType:
+        try:
+            city = CityRepository.get_by_id(data.uuid)
+        except Exception:
+            raise Exception([DOCS["errors"]["read_failed"].format("City")])
 
-    #     return city
+        if not city:
+            raise Exception(DOCS["errors"]["not_found"].format("City", data.uuid))
 
+        city = CityRepository.delete(city.uuid, not data.soft_delete)
+        if not city:
+            return Exception([DOCS["errors"]["delete_failed"].format("City")])
+
+        return city
+    
 
 @strawberry.type
 class WeatherHistoryMutation:
@@ -144,7 +145,13 @@ if ENVIRONMENT == "development":
     @strawberry.type
     class Mutation(CityMutation, JWTMutation, WeatherHistoryMutation):
         pass
+    @strawberry.type
+    class CustomMutation(CustomCityMutation, JWTMutation, WeatherHistoryMutation):
+        pass
 else:
     @strawberry.type
     class Mutation(CityMutation, JWTMutation):
+        pass
+    @strawberry.type
+    class CustomMutation(CustomCityMutation, JWTMutation):
         pass
