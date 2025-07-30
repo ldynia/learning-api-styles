@@ -6,5 +6,4 @@ googleapis-common-protos
 requests
 pillow
 python-json-logger
-torch==2.*
 transformers==4.*
