@@ -80,6 +80,9 @@ USER ${USER}
 
 COPY src/requirements.txt requirements.txt
 RUN cd /home/${USER} && python -m venv venv && . venv/bin/activate
+# Use two step installation as a workaround to install cpu-only torch
+# See https://github.com/huggingface/transformers/issues/39780
+RUN . /home/${USER}/venv/bin/activate && python -m pip install torch==2.* --index-url https://download.pytorch.org/whl/cpu
 RUN . /home/${USER}/venv/bin/activate && python -m pip install -r requirements.txt
 RUN echo "if [ -f /home/${USER}/venv/bin/activate  ]; then . /home/${USER}/venv/bin/activate; fi" >> /home/${USER}/.bashrc
 
