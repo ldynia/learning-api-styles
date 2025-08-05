@@ -28,23 +28,25 @@ from core.models import WeatherHistoryRepository
 class CityQuery:
     cities: list[CityType] = field(filters=CityFilter, order=CityOrder, description=DOCS["query"]["cities"])
 
-    # # KEEP THIS CODE - Solution for GraphQL exercise no.1
-    # @field(description=DOCS["query"]["cities"])
-    # def cities(self, info: Info, filters: CityFilter = None, order: CityOrder = None, includeDeleted: bool = False) -> list[CityType]:
-    #     try:
-    #         cities = CityRepository.get_all()
-    #         if not includeDeleted:
-    #             cities = cities.filter(deleted=False)
-    #     except Exception:
-    #         raise Exception(DOCS["errors"]["read_failed"].format("City"))
+@strawberry.type
+class CustomCityQuery:
 
-    #     if filters:
-    #         cities = strawberry_django.filters.apply(filters, cities, info)
+    @field(description=DOCS["query"]["cities"])
+    def cities(self, info: Info, filters: CityFilter = None, order: CityOrder = None, includeDeleted: bool = False) -> list[CityType]:
+        try:
+            cities = CityRepository.get_all()
+            if not includeDeleted:
+                cities = cities.filter(deleted=False)
+        except Exception:
+            raise Exception(DOCS["errors"]["read_failed"].format("City"))
 
-    #     if order:
-    #         cities = strawberry_django.ordering.apply(filters, cities)
+        if filters:
+            cities = strawberry_django.filters.apply(filters, cities, info)
 
-    #     return cities
+        if order:
+            cities = strawberry_django.ordering.apply(order, cities)
+
+        return cities
 
 
 @strawberry.type
@@ -90,4 +92,8 @@ class WeatherQuery:
 
 @strawberry.type
 class Query(CityQuery, WeatherQuery):
+    pass
+
+@strawberry.type
+class CustomQuery(CustomCityQuery, WeatherQuery):
     pass
