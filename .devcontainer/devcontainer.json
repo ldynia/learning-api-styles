@@ -1,15 +1,17 @@
 ﻿{
   "name": "Python 3.11",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  // https://mcr.microsoft.com/en-us/artifact/mar/devcontainers/python/tags  
+  "image": "mcr.microsoft.com/devcontainers/python:3-bookworm",
   "hostRequirements": {
     "cpus": 2,
     "memory": "4gb",
     "storage": "32gb"
 
   },
+  // https://github.com/devcontainers/features/tree/main/src      
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {"version": "latest"},
-    "ghcr.io/devcontainers/features/node:1": {"version": "latest"}
+    "ghcr.io/devcontainers/features/node:1": {"version": "lts"}
   },
   "customizations": {
     "codespaces": {
