@@ -1,4 +1,4 @@
-[Table of Contents](../../../README.md) | [&larr; Webhooks](../docs/WEBHOOKS.md) | [Messaging &rarr;](../../rabbitmq/MESSAGING.md)
+[Table of Contents](../../../README.md) | [&larr; Webhooks](../docs/WEBHOOKS.md) | [Messaging &rarr;](../../rabbitmq/README.md)
 
 ## WebSocket
 
@@ -147,4 +147,4 @@ The following command stops and removes the Docker containers created in the [la
 docker compose down
 ```
 
-[Table of Contents](../../../README.md) | [&larr; Webhooks](../docs/WEBHOOKS.md) | [Messaging &rarr;](../../rabbitmq/MESSAGING.md)
+[Table of Contents](../../../README.md) | [&larr; Webhooks](../docs/WEBHOOKS.md) | [Messaging &rarr;](../../rabbitmq/README.md)
