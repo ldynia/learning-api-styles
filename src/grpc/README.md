@@ -403,9 +403,9 @@ bash tests/echo.sh unary mtls
 
 [^1]: The main goal of protocol buffers as a standalone technology is to provide data serialization mechanisms. gRPC is also designed to support other serialization formats, including JSON.
 
-[^2]: See [Create Unique Protos per Method](https://protobuf.dev/best-practices/api/#unique-protos) for more details about this recommendation. Furthermore, it's also recommended to place every message in a [separate file](https://protobuf.dev/best-practices/dos-donts/#separate-files), but this recommendation is not followed here for readability.
+[^2]: See [Create Unique Protos per Method](https://web.archive.org/web/20250721031945/https://protobuf.dev/best-practices/api/#unique-protos) for more details about this recommendation. Furthermore, it's also recommended to place every message in a [separate file](https://protobuf.dev/best-practices/dos-donts/#separate-files), but this recommendation is not followed here for readability.
 
-[^3]: See [Precisely, Concisely Document Most Fields and Messages](https://protobuf.dev/best-practices/api/#precisely-concisely).
+[^3]: See [Precisely, Concisely Document Most Fields and Messages](https://web.archive.org/web/20250721031945/https://protobuf.dev/best-practices/api/#precisely-concisely).
 
 [^4]: For more details about RPC supported by the gRPC, see [gRPC core concepts](https://grpc.io/docs/what-is-grpc/core-concepts/) documentation.
 
