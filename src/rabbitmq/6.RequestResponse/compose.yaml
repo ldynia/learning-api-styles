@@ -1,6 +1,6 @@
 services:
   init:
-    image: python:3.13-bookworm
+    image: python:3.13-trixie
     container_name: rabbitmq-init
     command: bash -c "bash /usr/src/certs.sh && sleep infinity"
     working_dir: /usr/src
@@ -43,7 +43,7 @@ services:
       retries: 30
 
   server:
-    image: python:3.13-bookworm
+    image: python:3.13-trixie
     container_name: rabbitmq-server
     hostname: rabbitmq-server
     command: bash -c "bash /usr/src/scripts/startup.sh && sleep infinity"
@@ -70,7 +70,7 @@ services:
       retries: 30
 
   client:
-    image: python:3.13-bookworm
+    image: python:3.13-trixie
     container_name: rabbitmq-client
     hostname: rabbitmq-client
     command: bash -c "bash /usr/src/scripts/startup.sh && sleep infinity"

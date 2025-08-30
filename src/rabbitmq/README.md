@@ -258,7 +258,7 @@ The `TLS_ENABLE` environment variable set `1` in the `producer` and `consumer` s
 
 services:
   init:  # <1>
-    image: python:3.13-bookworm
+    ...
     container_name: rabbitmq-init
     entrypoint: ["/bin/sh", "/usr/src/certs.sh"]  # <5>
     working_dir: /usr/src
