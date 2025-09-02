@@ -1,4 +1,4 @@
-FROM debian:testing
+FROM debian:stable
 
 ARG WORKDIR=/usr/src/grpc
 

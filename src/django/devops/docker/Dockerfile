@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 ARG PY_VER=3.13
-FROM python:${PY_VER}-slim-bookworm
+FROM python:${PY_VER}-slim-trixie
 ARG PY_VER
 
 ARG APP_TLS_CERTS_DIR=/etc/wfs/ssl/certs \
