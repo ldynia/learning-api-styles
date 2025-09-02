@@ -1,4 +1,4 @@
-behave==v1.2.7.dev6
+behave
 behave-django
 coverage
 Django
