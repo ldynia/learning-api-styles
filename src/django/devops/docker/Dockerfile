@@ -29,7 +29,7 @@ ENV APP_TLS_CERTS_DIR=$APP_TLS_CERTS_DIR \
 RUN echo user:group ${USER}:${GROUP}
 RUN echo uid:gid ${UID}:${GID}
 RUN getent group ${GROUP} || groupadd --non-unique --gid ${GID} ${GROUP}
-RUN getent passwd ${USER} || useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/false ${USER}
+RUN getent passwd ${USER} || useradd --uid ${UID} --gid ${GID} --create-home --shell /bin/bash ${USER}
 RUN if [ "${GID}" != "1000" ] || [ "${UID}" != "1000" ]; then \
       groupmod --non-unique --gid ${GID} ${GROUP} && \
       usermod --uid ${UID} --gid ${GID} ${USER} && \
@@ -42,8 +42,10 @@ RUN apt-get update && \
     sudo && \
     rm -rf /var/lib/apt/lists/*
 RUN echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER}
+RUN chmod 0440 /etc/sudoers.d/${USER}
 RUN sudo -lU ${USER}
 USER ${USER}
+RUN whoami
 RUN sudo ls /etc
 USER root
 
