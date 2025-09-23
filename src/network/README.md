@@ -177,8 +177,8 @@ docker compose exec client bash -c \
 ### Security
 
 Encryption is a common way to enhance the security of network communication today.
-However, standardized encryption wasn't feasible at the time, due to the so-called [Crypto Wars](https://en.wikipedia.org/wiki/Crypto_Wars) (not to be confused with the more recent cryptocurrency wars), where the United States and its allies limited the public's and other nations' access to cryptography.
-Restrictions on foreign access to encryption technology were lifted in the 1990s, leading to the development of web encryption protocols((("web encryption protocols"))) such as SSL/TLS (Secure Sockets Layer/Transport Layer Security).
+However, standardized encryption wasn't feasible at the time of the development of early network protocols, due to the so-called [Crypto Wars](https://en.wikipedia.org/wiki/Crypto_Wars) (not to be confused with the more recent cryptocurrency wars), where the United States and its allies limited the public's and other nations' access to cryptography.
+Restrictions on foreign access to encryption technology were lifted in the 1990s, leading to the development of web encryption protocols such as SSL/TLS (Secure Sockets Layer/Transport Layer Security).
 
 #### Introduction to cryptography
 
@@ -236,7 +236,7 @@ However, the incentives to discover or leak the algorithm would probably eventua
 Therefore we are left with the other component of the cipher--the key, as the provider of confidentiality.
 This is the idea behind the Kerckhoffs' principle, which states that cipher should be secure, even if everything about it, except the key, is publicly known.
 
-The question still remains: how can confidentiality be achieved based solely on the key, while the cipher algorithm is public?
+The question then remains: how can confidentiality be achieved based solely on the key, while the cipher algorithm is public?
 The closest approach to achieving this is the construction of a one-time pad (OTP), built as follows.
 Instead of using letters of the alphabet, the plaintext is represented as a binary number.
 There exists a mathematical operation called XOR (exclusive OR), with the following truth table as shown below, which produces a 0 or 1 bit with equal probability (50%).
@@ -339,10 +339,11 @@ However, only you, the owner of the account, can withdraw money using your priva
 On the other hand, symmetric cryptography is like a safe.
 Only people who know the combination (key) to the safe can open it.
 This is similar to how the same key is used for both encryption and decryption in symmetric cryptography.
+
 DH is a common public-key cryptography protocol used to establish a shared secret over an insecure communication channel.
 DH is named after the surnames of Whitfield Diffie and Martin Hellman, who published it in 1976.[^6]
 DH is used as the acronym when referred to this key establishment method.
-A numerical example that helps to understand the mathematics of DH key establishment is provided visually on the diagram, and as a Python interactive session below.[^7]
+A numerical example that helps to understand the mathematics of DH key establishment is provided below visually on the diagram, and as a Python interactive session.[^7]
 This demonstration of the protocol uses a common setup used to discuss asymmetric cryptography, involving two communicating parties, Alice and Bob.[^8]
 
 <div align="center">
@@ -372,7 +373,8 @@ This demonstration of the protocol uses a common setup used to discuss asymmetri
 ```
 
 1. The protocol requires a large prime number `p`, and a corresponding number `g`, the generator of the multiplicative group of integers modulo `p`.
-Both these numbers are publicly known. This demonstration uses a small prime number `p` for readability.[^9]
+Both these numbers are publicly known.
+This demonstration uses a small prime number `p` for readability.[^9]
 
 2. One party of the communication, called Alice, generates a random integer number `a`, this is Alice's private key.
 
@@ -388,15 +390,15 @@ Alice sends her public key over a public communication channel to another side o
 
 7. Bob calculates the shared secret `s` analogously, using Alice's public key and his private key.
 The mathematics of DH key establishment asserts that Alice and Bob possess the same value of the shared secret, without ever exchanging it over the communication channel.
-The reader can verify numerically that `(B ** a) % p == (((g ** b) % p) ** a) % p == ((g ** b) ** a) % p == (g ** (b*a)) % p == (g ** (a*b)) % p == ((g ** a) ** b) % p == (((g ** a) % p) ** b) % p == (A ** b) % p`.
+You can verify numerically that `(B ** a) % p == (((g ** b) % p) ** a) % p == ((g ** b) ** a) % p == (g ** (b*a)) % p == (g ** (a*b)) % p == ((g ** a) ** b) % p == (((g ** a) % p) ** b) % p == (A ** b) % p`.
 
 You may ask a question about what prevents an attacker from calculating Alice's private key `a`, based on the publicly known public key `A`, prime number `p`, and generator `g`.
 The answer lies in the mathematical operation of logarithm, which is the inverse to exponentiation.
-The security of DH depends on the computational difficulty of calculating the discrete logarithm of a large integer number[^10] compared to less computationally demanding discrete exponentiation.
+The security of DH depends on the computational difficulty of calculating the discrete logarithm of a large integer number[^10], compared to less computationally demanding discrete exponentiation.
 
 DH provides a solution to the symmetric ciphers' need to establish a key distribution channel.
 The actual symmetric key isn't being exchanged, only the public keys are exchanged.
-Each communicating party using its own private key, together with the peer's public key, to calculate a shared secret.
+Each communicating party is using its own private key, together with the peer's public key, to calculate a shared secret.
 This is why DH is usually called a key establishment rather than a key exchange.
 
 However, DH doesn't provide non-repudiation, since the private keys are only used for establishing the shared secret, and aren't used to identify the communicating parties.
@@ -404,13 +406,14 @@ Moreover, DH is used to produce ephemeral keys (referred to as DHE for Diffie-He
 Therefore, these ephemeral keys, cannot be used for long-term non-repudiation purposes.
 Instead, non-repudiation can be provided using a construct of asymmetric cryptography called digital signatures.
 
-It should be noted, that since TLS uses symmetric encryption for application data, TLS doesn't provide non-repudiation.
+It should be noted here, that since TLS uses symmetric encryption for application data, TLS doesn't provide non-repudiation.
 Nevertheless, TLS makes use of digital signatures, as part of X.509 certificates, used for authentication of the parties.
 Digital signatures, in turn, make use of hashing, so let's describe hashing first, and come back to certificates later.
 
-A hash function[^12] is the main tool to provide cryptographic integrity. Such a function performs a mapping from an arbitrary-size input into a fixed-size output.
+A hash function[^12] is the main tool to provide cryptographic integrity.
+Such a function performs a mapping from an arbitrary-size input into a fixed-size output.
 Nowadays (2025), the output size ranges from 224 to 512 bits for the `SHA` (Secure Hash Algorithm) family of functions.
-The hash functions are designed to be one-way, meaning there is no known method of calculating input from the given output, except for brute-force trying all possible inputs.
+The hash functions are designed to be one-way, meaning there is (currently) no known method of calculating input from the given output, except for brute-force trying all possible inputs.
 The result of the hash function is deterministic--given input always produces the same output.
 On the other hand, a small change in the input changes many bits of the output, known as the avalanche effect.
 For example, in the following code, you can see that a change of one character in the input leaves only a single hex digit unchanged in the output.
@@ -470,7 +473,7 @@ The certificate is the corresponding public key supplemented by the identity inf
 CA then uses its private key to sign the hashed content of the certificate.
 By definition, the top-level (root) CA certificate is self-signed, meaning the `Subject` and `Issuer` fields of the certificate are the same.
 
-The following code shows the creation of a self-signed root CA certificate for a fictitious `example.com` root CA uses [openssl](https://www.openssl.org) command line tool to create the private key (`ca.key`) and self-signed certificate (`ca.crt`), and sets `example.com Root CA` as the `Subject` name of the certificate.
+The following block shows the creation of a self-signed root CA certificate for a fictitious `example.com` root CA uses [openssl](https://www.openssl.org) command line tool to create the private key (`ca.key`) and self-signed certificate (`ca.crt`), and sets `example.com Root CA` as the `Subject` name of the certificate.
 
 The CA also selects a public-key cryptography algorithm and the key length, in this example `rsa:3072`, and issues the certificate to be valid for `3650` days.[^16]
 The certificate extensions must be chosen to represent the role of this certificate.
@@ -486,16 +489,17 @@ docker compose exec server bash -c \
 ```
 
 Until now, we have a root CA certificate, but we are interested in obtaining a certificate for our server.
-The root CA could issue such certificate, by receiving the public key of the server from us, binding it with the server name into a certificate, and signing using the generated root CA private key (`ca.key`).
+The root CA could issue such certificate, by receiving the public key of the server from us, binding it with the server name into a certificate, and signing using the root CA private key (`ca.key`).
 Nevertheless, this isn't done in practice.
 
 Any use of the private key creates a risk of leaking it.
-Therefore, the root CA minimizes the use of the private key, by storing it in a Hardware Security Module (HSM), in a safe, and employing additional physical security measures.
+Therefore, the root CA minimizes the use of its private key, by storing it in a Hardware Security Module (HSM), in a safe, and employing additional physical security measures.
 Instead of directly issuing server certificates, the root CA will issue certificates for so-called issuing CAs, and only these issuing CAs will issue certificates for consumer servers.
 This will create a certificate chain of trust with the root CA as the trust anchor.
 
-The following code shows issuing CA certificate signing request, the issuing CA, e.g., `example.com Issuing CA`, a separate organization from the root CA, will generate its private key (`ica.key`).
-The issuing CA coverts its public key into a certificate signing request (`ica.csr`), and sends it to the root CA, who signs it with its private key.
+The following block shows a certificate signing request performed by a issuing CA.
+The issuing CA, e.g., `example.com Issuing CA`, a separate organization from the root CA, will generate its private key (`ica.key`).
+The issuing CA then coverts its public key into a certificate signing request (`ica.csr`), and sends it to the root CA, who signs it with its private key.
 Note that the public-key cryptography algorithm can differ among various certificates present in the certificate chain.
 In our example, the issuing CA uses Elliptic Curve Cryptography (ECC), while the root CA uses RSA.
 
@@ -505,8 +509,8 @@ docker compose exec server bash -c \
        -keyout ica.key -out ica.csr -subj "/CN=example.com Issuing CA"'
 ```
 
-The next code shows signing of issued CA certificate signing request, the root CA signs the issuing CA certificate signing request.
-The CA decides about the validity period of the certificate, and since the issuing CA is still a CA, the root CA sets the `CA:TRUE` and required key usage capabilities.
+The following block shows the root CA signing the issuing CA certificate signing request.
+The CA decides about the validity period of the certificate, and since the issuing CA is still a CA, the root CA sets the `CA:TRUE`.
 The root CA sends the signed certificate (`ica.crt`) to the issuing CA.
 
 ```bash
@@ -517,7 +521,8 @@ docker compose exec server bash -c \
        keyUsage=keyCertSign,cRLSign")'
 ```
 
-At this point, as shown in the next code, the administrator of the server chooses an issuing CA, generates a certificate signing request (`server.csr`) for its server, and sends it to the issuing CA for signing.
+At this point, as shown in the next block, the administrator of the server chooses an issuing CA, gener
+ates a certificate signing request (`server.csr`) for its server, and sends `server.csr` to the issuing CA for signing.
 
 ```bash
 docker compose exec server bash -c \
@@ -526,7 +531,7 @@ docker compose exec server bash -c \
        -addext "subjectAltName=DNS:server"'
 ```
 
-The following  shows the issuing CA uses its (`ica.key`) private key to sign the server certificate signing request.
+The following block shows the issuing CA uses its (`ica.key`) private key to sign the server certificate signing request.
 The subject of this certificate, the server, isn't a CA.
 Therefore, the issuing CA sets `CA:FALSE` on the certificate, and also sets the `digitalSignature` key usage required for the certificate to be used for `serverAuth` (server authentication) using TLS version 1.3.
 The issuing CA sends the signed certificate (`server.crt`) to the server administrator.
@@ -544,7 +549,7 @@ Most server software requires the certificates to be concatenated into a single 
 TLS version 1.2 and earlier, required the server certificate to be present first in the file, followed by issuing CA certificates in their order towards the root CA, with the self-signed root CA included last, but usually omitted.[^18]
 TLS version 1.3 relaxed this order requirement, and only requires for the server certificate to be present as the first one.
 
-Before creating the certificate chain in create server certificate chain, the administrator, in verify issuing CA certificate, verifies the signature of the root CA on the issuing CA certificate.
+Before creating the certificate chain, the administrator, verifies the signature of the root CA on the issuing CA certificate.
 The `(untrusted)` label in the output indicates that the issuing CA certificate isn't present in the trust store[^19] of the machine that executes this command.
 
 ```bash
@@ -557,7 +562,7 @@ depth=0: CN = example.com Issuing CA (untrusted)
 depth=1: CN = example.com Root CA
 ```
 
-After assuming trust in the root CA, and developing trust in the issuing CA certificate, the administrator, the following code verifies the signature of the issuing CA on the server certificate.
+After assuming trust in the root CA, and developing trust in the issuing CA certificate, the administrator, verifies the signature of the issuing CA on the server certificate.
 
 ```bash
 docker compose exec server bash -c \
@@ -625,7 +630,8 @@ Normally, this would be a domain on which the web server is accessible, such as 
 6. The server public key is of ECC type and uses the `P-256` (also known as `prime256v1`) elliptic curve.
 The `pub` field contains the server public key in a format of colon-separated hex bytes.
 
-7. The `X509v3` extensions confirm that the certificate is a server certificate. With `CA:FALSE`, the subject (server) private key isn't given CA capabilities to issue and sign further certificates.
+7. The `X509v3` extensions confirm that the certificate is a server certificate.
+With `CA:FALSE`, the subject (server) private key isn't given CA capabilities to issue and sign further certificates.
 The certificate usage is limited to performing TLS authentication of the server with help of digital signatures.
 In TLS version 1.3 the certificate is used only for authentication of the parties during the TLS handshake, and therefore, no other key usage capabilities are needed.
 
@@ -670,17 +676,17 @@ docker compose exec client bash -c \
 1. Create three panes with tmux.
 
 2. Start the server.
-The difference here is, that in addition to the server, the `stunnel` program (not shown explicitly here) was started in the background.
+In addition to the server, the `stunnel` program (not shown explicitly here) was started in the background.
 It is listening on port 443, and acting as a TLS wrapper over the TCP ECHO server.[^21]
 
 3. Start `tcpdump`, this time capturing traffic on TLS port 443.
 The ARP traffic is excluded from the capture for simplicity.
 
 4. Invoke the `openssl` client.
-As with all demonstrations in this chapter, the client prints "Hello" received back from the server and exits.
+As with all demonstrations in this guide, the client prints "Hello" received back from the server and exits.
 The presence of the (`ca.crt`) root CA certificate among the command line options is worth noticing.
 This emphasizes that the decision to trust the given CA is made on the client side.
-Operating systems or larger programs like web browsers come with their own trust store, which contains the certificates of the CAs they have decided to trust.
+Operating systems or larger programs like web browsers come with their own trust store, which contains the certificates of the CAs, they have decided to trust.
 However, a client can choose to place any certificate in the trust store, or trust a CA in a one-off manner, as in this case.
 Another element worth mentioning is the _SSLKEYLOGFILE_ file (called `SSLKEYLOGFILE.client` in this case).
 Many programs that implement TLS, like `openssl` or web browsers, support the creation of a _SSLKEYLOGFILE_ file, which stores various types of secrets needed to decrypt the data exchanged during the TLS session.
@@ -750,7 +756,7 @@ In particular, `Client Hello` contains the list of supported cipher suites, with
 3. The server acknowledges reception of the TCP segment containing the TLS Client Hello request from the client.
 The overhead of TLS handshake is already noticeable from the few hundred bytes value of the ACK.
 The details of the TCP session, including the meaning of sequence and acknowledgment numbers, aren't discussed here.
-Instead, for comparison consult the explanation of TCP in [TCP ECHO Service](#tcp-echo-service) section.
+For a refresher on TCP, consult the explanation in [TCP ECHO Service](#tcp-echo-service).
 
 4. The server continues the TLS handshake by sending several TLS records inside of a single TCP segment.
 Note that `Server Hello` is a type of message defined by the TLS protocol, not a server's "Hello" response contained in the TCP segment.
