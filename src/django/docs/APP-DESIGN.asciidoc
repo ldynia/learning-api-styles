@@ -1,0 +1,997 @@
+// Document attributes START
+:imagesdir: ./assets/app-design
+// Document attributes END
+
+[[chapter-app-design]]
+= Application Design
+
+Before implementing various web APIs, we need to create a context in which we can use these APIs.
+We need an educational application that will encapsulate various APIs into one project.
+Without such an application, our web APIs would be loosely hanging code snippets that are hard to relate to.
+Therefore we'll design an application--the Weather Forecast Service (WFS)--by translating client needs to domain concepts, and the concepts to the code.
+We chose the weather because everyone can intuitively relate to it.
+
+There are two starting points when approaching a system design: formal and informal, each lying at the opposite end of the spectrum.
+Leslie Lamport gave an overview of this spectrum in a talk https://youtu.be/-4Yp3j_jk8Q[Thinking above the code].
+The formal approach is structured, and you often need to put in a lot of time and effort.
+Mathematics is placed at the very extreme of the formal methods.
+By following the formal approach, the designer hopes to express the system unambiguously so that it can be verified, leading to software maintainability and early error detection.
+On the other end of the spectrum, the informal approach is unstructured, and relies on common sense and intuition.
+Informal methods, in the early phases of _software development lifecycle_ (SDLC), facilitate exploration, and fast prototyping.
+
+Depending on the system's complexity and the desired level of detail, you'll employ one or more approaches from the design method spectrum.
+For example, if you are working on a large project that follows compliance rules, then you'll likely use a formal approach.
+On the other hand, if you are working on a small project, then you'll likely use an informal approach.
+In our case, we'll use an informal method of domain modeling in the design phase of the SDLC.
+Whereas the slightly more formal methods for describing the system's behavior, such as user requirements specification, user stories and behavior-driven development, will stretch from planning to testing phases.
+
+== Software Development Lifecycle
+
+The SDLC is a process used to manage a software application during its lifetime, from planning to retirement.
+The cycle describes phases where a software is planned, designed, implemented, tested, deployed, maintained, and retired.
+<<chapter-app-design-sdlc.png>> illustrates SDLC's phases.
+
+[[chapter-app-design-sdlc.png]]
+.Software development lifecycle
+image::sdlc.png[Software Development Lifecycle]
+
+Planning::
+Planning is the phase where decisions and considerations about the software are made.
+It is the planning phase that defines the software scope, schedule, goals, deliverables, and deadlines.
+During the planning phase, product owners, architects, and developers identify organizational objectives, understand the target audience, and formalize the software's functional and non-functional requirements.
+Functional requirements (FRs) capture (_"what"_) software functionality, and nonfunctional requirements (NFRs) capture software quality (_"how"_).
+
+Design::
+In the design phase, designers (architects and developers) identify an approach for designing the software, based on an understanding of the software audience, requirements, and constraints extracted from the planning phase.
+The design phase addresses software functionality not only in terms of what it should provide, but also how it should provide it.
+In this phase, designers make the decisions for example, of whether to integrate the software with third-party solutions, and what technology and tools to choose.
+
+Implementation::
+The software is created in the implementation phase by mapping the design into code.
+This is why we also refer to this phase as the applied architecture phase.
+Requirements extracted from the planning phase and identified domain models created in the design phase are turned into code.
+The learnings discovered from the implementation phase may lead to revisiting and adjusting earlier decisions created in the other SDLC phases, resulting in changes to the requirements or software specifications.
+
+Testing::
+During the testing phase, the software is evaluated for its functionality, security, and performance.
+Developers and the quality assurance (QA) team implement and execute the tests.
+Testing can happen in parallel with implementation, and learnings from testing may influence other SDLC phases.
++
+Testing is part of software development, and depending on what is tested and how, it can be either daunting or exciting.
+Testing is important because it helps to create maintainable software, validate system functionality, identify the presence of bugs (but not their absence), and facilitate refactoring.
+
+Deployment::
+Deployment is the process of moving a software artifact to the environment in which it will operate.
+The process usually requires software packaging, configuration, and environment provisioning, and is executed manually or automatically.
+Moving the software artifact to a target environment might sound trivial, but anyone who has worked in operations will confirm that it's more complicated than that.
++
+The DevOps movement tries to address difficulties associated with software release and deployment by "joining" the development and operations teams, via practices of _continuous integration_ (CI) and _continuous deployment_ (CD).
+
+Maintenance::
+Maintenance is the ongoing phase in the software lifecycle, and it's known to incur significant costs.
+In this phase, the software is patched, updated, documented, improved, and monitored for performance, security threats, and user activities.
+The goal of maintenance is to keep the software relevant and up-to-date as long as it is operational.
+
+Retirement::
+Software doesn't last forever (unless it's embedded), and retirement is the last stage of the SDLC.
+Typical circumstances that lead to a software being retired by the organization are as follows: the software doesn't fulfill the organization's objectives, new functionality cannot be added to an existing software, software costs exceed revenues, or the organization changes monetization strategy from a free software to a paid software.
++
+In the retirement phase, a migration plan may be used to support multiple software versions (old and new) running in parallel.
+Moreover, the phase should have an end-of-life plan that states how to deprecate the software without affecting operations and how to communicate software retirement to its users.
+
+== Weather Forecast Service Application
+
+// The goal
+One of the goals of the https://learningapistyles.com[Learning API Styles] book is to teach you how to design and implement various network-based APIs, such as REST, GraphQL, Atom, gRPC, Webhooks, WebSocket, and messaging APIs with RabbitMQ.
+For this purpose we'll design an application--Weather Forecast Service--that will aggregate most of these APIs under one umbrella.
+
+// Domain
+Domain knowledge is an implicit information known by subject matter experts (SMEs).
+As a designer (an architect or a developer), your task is to obtain enough of the domain knowledge to help define and understand the system's functional and behavioral requirements.
+
+As we design the WFS, we'll describe several methods, such as a feature list or user story, that can be used to incorporate the domain knowledge obtained from SMEs into the system-building process.
+Every method has a different level of detail, pros and cons, and the applicability of the given method depends on the project size.
+Therefore, you will choose the methods that fit your needs and the project's size.
+
+[NOTE]
+====
+This section is divided into individual phases of SDLC.
+It will help you understand the project timeline and map the methods to the relevant SDLC phases.
+====
+
+// Perspectives
+We aim to capture the system's functionality and qualities (constraints) in a manner understandable to all interested parties.
+Here, we'll introduce only two representative profiles: a client, and a designer.
+
+* a client: Is a person who wants to realize his idea with software.
+The client may know more or less what the software should do and focuses on personal preferences.
+
+* a designer: Is an architect or a developer who has the technical skills to realize a client's ideas.
+A designer focuses on clarifying and implementing the functionality desired by the client, and how to sustain this functionality in the long run.
+
+[[chapter-app-design-planning]]
+=== Planning
+
+The planning phase is where requirements are collected.
+People included in this phase are SMEs whose input will be used to shape the project's roadmap, and software functional and non-functional requirements.
+The main document which may be created in this phase is the software requirement specification (SRS), which collects system functionality and quality attributes.
+
+==== Kick-off
+
+A project may have its kick-off, a time, and a place where the project oficially starts.
+For us, the kick-off was on the 20th of Jul 2023 at the projection of Oppenheimer the movie.
+The purpose of the kick-off is to brainstorm ideas of what to build.
+Initially, we considered two options: to build a stock market tracker or a weather forecast application.
+We chose the latter because, because we can intuitively relate to it, and we assumed that for you, it would be the same.
+
+==== Feature List
+
+// Transition from domain modeling
+Kick-off gives the direction of the project.
+The next step is to sketch out a rough list of functionality the WFS will provide, and create a profile of the application user.
+
+// What is a feature list?
+A feature list is a document (usually a Markdown file, sometimes a spreadsheet) containing a list of features of the system.
+A feature describes the client's wish, written in layman's terms.
+Typically, a feature list is created in the planning phase of SDLC, and helps understand and prioritize the features of the system.
+
+// How to write a feature list?
+Because the goal is to teach you how to design and implement web APIs, we created a feature list presented in <<chapter-app-design-feature-list>>--as a wish list.
+The list contains WFS functionality as captured from the client's perspective.
+We created the feature list, by imagining what preferences (wishes) the client may have about the behavior of the WFS.
+Additionally, every feature is associated with its necessity and priority from the client's perspective.
+
+[[chapter-app-design-feature-list]]
+.Weather Forecast Service--Feature List
+[options="header",width="100%"]
+|===
+| Feature | Necessity | Priority
+| Service operates in a local environment | Must | High
+| Service requests can be encrypted or unencrypted | Must | High
+| Service is deployed as one unit | Must | High
+| Service is deployed to cloud or on-prem | Won't have | Low
+| Service is testable | Must | Medium
+| Service APIs are documented | Must | High
+| Service is runnable by a majority of book readers | Must | High
+| Service exposes common weather indicators via various web APIs | Must | High
+| Service integrates with GitHub via webhooks | Must | High
+| Service provides weather forecast feed | Must | High
+| Service provides weather alerts | Must | High
+| Service provides weather historical data | Should | High
+| Service has a content management system for admin user | Must | Medium
+| Weather records contain actual data | Could | Low
+| Weather data is limited to the 5 biggest cities in the world | Should | Medium
+| Weather forecast is limited to up to 7 days | Should | Medium
+| Service has two users, admin, and regular user | Must | Medium
+|===
+
+// Summary of feature list
+The feature list is a good starting point for small projects; it's easy to create, maintain, and share.
+However, it's not a good fit for projects where the client is unavailable or the project is lacking details and acceptance criteria.
+
+// Sidebar
+User Story versus Job Story::
++
+'''
+// What is a user story?
+A https://www.mountaingoatsoftware.com/agile/user-stories[user story] is a description of a user's need--a system feature as told by its user.footnote:[Usually only a user (customer) can be a subject of a user story https://www.industriallogic.com/blog/as-a-developer-is-not-a-user-story/["As a Developer... Is Not a User Story"]. However, a developer may also be a subject of a user story, e.g. "As a Developer, I want a standardized local development environment, so that “works on my machine” issues are reduced.". If developers are not parts of user story then total cost of the system would be underestimated. After all, developers are also system users.]
+Its purpose is to ensure that the designed system matches users' needs and expectations.
+A user story isn't a requirement specification that lists details or the constraints of the system.
++
+// Anatomy of user story
+A user story contains three elements: a role (who)--a user who performs the action; a goal/capability (what)--an objective the user wants to achieve; and (an optional) benefit (why)--value that the user will get from the system.
+The benefit tends to be included when the user story describes the client's perspective.
+However, when a user story is used for technical or internal purposes (e.g., to support development tasks), the benefit is often omitted.
++
+// User story templates
+Below are two examples of a user story template:
++
+  * As a <role>, I want <goal>, so that <benefit>.
+  * As <who> <when> <where>, I want <what>, because <why>.
++
+// Example of user stories
+Here are examples of user stories from the perspective of two users of the WFS:
++
+  * As a user, I want to receive my city's weather alerts early in the morning so that I can dress accordingly.
+  * As an admin user, I want to trigger weather alerts about a specific city via command line interface (CLI) so that I can notify users about dangerous weather conditions.
++
+// Example of user story mapping
+<<chapter-app-design-wfs-user-story-map.jpg>> is a board showing, in the top row, a few representative user stories described above.
+Below every user story are the major tasks leading to the completion of this user story.
+Such arrangement of user stories and tasks is called a user story map.
++
+[[chapter-app-design-wfs-user-story-map.jpg]]
+.User Story Map
+image::wfs-user-story-map.jpg[User Story Map]
++
+[NOTE]
+====
+The software tools (Azure DevOps, Jira, etc.) used to manage user stories contain variations of the user story approach, which include additional levels of a hierarchy e.g., epic, feature, user story, and story task.
+When using these tools, the title of a user story will be brief, and the user story itself will be described in the user story description field.
+====
++
+https://www.mountaingoatsoftware.com/blog/job-stories-offer-a-viable-alternative-to-user-stories[job story] is an alternative to a user story.
+A job story captures the situation, motivation, and the expected outcome to the user.
+The main difference between a user story and a job story is that a job story focuses on the situation and motivation, rather than identifying a specific type of user.
+The focus of the job story is on the job, not the user.
+The job story template looks like this:
++
+  When <situation>, I want to <goal>, so I can <benefit>
++
+Here are examples of job stories for our WFS:
++
+  When receiving a weather forecast, I want to get the hourly resolution, so I can plan the time of my trip.
++
+  When the application tests are started, I want the database to be seeded with dummy data.
++
+As with user stories, which sometimes omit the benefit part, the job story may also leave it out.
+When should you use a user story, and when should you use a job story?
+If the designed system has well-defined user roles and you need to focus on their needs, then user stories might be a better choice.
++
+Remember that you aren't limited to using one or the other approach.
++
+'''
+
+==== Requirements
+
+// Transition from features
+A feature list contains client wishes and works well for simple systems.
+Features from the feature list need to be prioritized and organized in a way so they can be assigned to relevant people, such as architects, developers, or testers.
+
+This is where requirements come into the picture; they help to focus on what's important.
+The https://www.iiba.org/professional-development/knowledge-centre/articles/needs-and-solutions/[Business Analyst Core Concept Model] defines the requirement as "a usable representation of a need."
+Formulating requirements can help to reduce the risk of project failure and minimize the project's cost.
+
+// Sidebar
+Functional and Nonfunctional Requirements::
++
+'''
+In system design, several https://en.wikipedia.org/wiki/Requirement#Types_of_requirements[types of requirements] are created at different phases of the SDLC, such as user, business, regulatory, system, architectural, functional, nonfunctional, and implementation requirements.
++
+However, from the perspective of a designer, the first three phases of the SDLC focus on functional requirements (FRs) and nonfunctional requirements (NFRs).
+The classification into FRs and NFRs can be helpful for prioritization of design and development efforts, or communicating risks that might originate from a requirement.
++
+Let's look at the definitions of FRs and NFRs:
++
+FRs::
+The specific functions, tasks, or behaviors that a system should fulfill.
+FRs can be described from the user's perspective, where the user performs specific actions on the system, or from the system's perspective, where the system performs specific actions.
+For example, _User should be able to reset password_ or _Service should allow admins to disable user access_.
++
+NFRs::
+Capabilities and constraints to which the system should adhere. In other words, NFRs describe the quality of the system.
+They are also known as architecturally significant requirements, software architectural characteristics, or quality attributes. NFRs are said to describe a system's https://en.wikipedia.org/wiki/Non-functional_requirement["ilities"]—for example, deployability, maintainability, performance, security, and usability.
+For example, _The system should be fast_ or _The system should be available 99.9% of the time_.
++
+The distinction between an FR and NFR can often be fuzzy.
+For example, the requirement _Service provides timely weather alerts_ can be both an FR and an NFR:
++
+* _Service provides weather alerts_; service provides a function.
+* _Service provides timely alerts_; service operates in a timely manner.
++
+When facing dilemmas between FRs and NFRs, answer questions such as these:
++
+* Does the requirement provide a function?
+* Does the requirement impact system _ilities_?
+* Does the requirement force the system or function to operate in a certain way?
+* Does the requirement relate to the input or output of the system?
++
+Because the system continues functioning beyond the implementation phase, the impacts of NFRs aren't immediately visible; they take time to appear.
++
+'''
+
+<<chapter-app-design-functional-requirements>> contains functional requirements extracted from <<chapter-app-design-feature-list>>.
+The table contains two columns: the feature and the designer's note column.
+The designer's note column contains the designer's initial thoughts--technologies or techniques--that might lead to the implementation of the feature.
+
+[[chapter-app-design-functional-requirements]]
+.Functional Requirements
+[options="header",width="100%"]
+|===
+| Feature (FR) | Designer's Note
+| Service exposes common weather indicators via various web APIs | Research common weather indicators; REST, GraphQL
+| Service integrates with GitHub via webhooks | Webhooks API
+| Service provides weather forecast feed | Atom as API
+| Service provides weather alerts | Websocket API
+| Service provides weather historical data | Model domain
+| Service has a content management system for admin user | Custom CMS?
+| Weather records contain actual data | Find 3rd party weather API
+| Weather data is limited to the 5 biggest cities in the world | What are they?
+| Weather forecast is limited to up to 7 days | Model domain
+| Service has two users: admin, and regular user | Object level permission
+|===
+
+<<chapter-app-design-non-functional-requirements>> shows non-functional requirements extracted from <<chapter-app-design-feature-list>>.
+The designer's note column contains potential technical solutions.
+
+[[chapter-app-design-non-functional-requirements]]
+.Non-Functional Requirements
+[options="header",width="100%"]
+|===
+| Feature (NFR) | Quality Attribute | Designer's Note
+| Service operates in a local environment | Portability | Containers
+| Service requests can be encrypted or unencrypted | Security | TLS
+| Service is deployed as one unit | Deployability | Monolith
+| Service is testable | Testability | End-to-end testings, integration testings
+| Service APIs are documented | Documentability | OpenAPI Spec, AsyncAPI Spec
+| Service is runnable by a majority of book readers | Deployability | Containers, GitHub Codespaces
+|===
+
+// Non-functional Requirements And Trade-offs
+The quality attributes identified in NFRs cannot be thought of as independent properties of the system.
+Quality attributes are interconnected and impact each other.
+Be aware that, depending on the perspective, the quality attributes may be paired differently.
+Below are examples of trade-offs between commonly paired quality attributes:
+
+* Functionality versus Usability: A system that has many features can be difficult to use.
+
+* Interoperability versus Vendor Lock-in: Operating in a multi-cloud environment reduces vendor lock-in at the cost of system and integration complexity, maintainability, data transfer costs, and required human expertise.
+
+* Performance versus Complexity: Adding caching or parallelism, increases the system's performance at the cost of complexity.
+
+* Reliability versus Cost: A system that requires failover hardware is expensive to build and maintain.
+
+* Security versus Performance: The side effect of security can be a decreased performance, e.g., encryption and decryption that slow down operations.
+
+// Sidebar
+Software Requirements Specification::
++
+'''
+As we described earlier, there are several types of requirements created in SDLC that will shape system design.
++
+Software Requirements Specification (https://en.wikipedia.org/wiki/Software_requirements_specification[SRS]) is a document that attempts to capture the system requirements.
+An SRS has the potential to avert misinterpretations regarding the functionality and limitations of the system.
+Most of the requirements are created during the planning phase of SDLC.
+However, the development process isn't static.
+As it unfolds and the software features mature, the SRS document needs to be updated to reflect these ongoing changes.
+SRS allows various interested parties to comprehend the system.
+For example, developers use it to understand what needs to be built, analysts use it to collect views of the system and translate them into language developers can understand, and product owners use it to understand the system's capabilities and constraints.
++
+SRS has merits in large-scale software.
+For the WFS, creating and maintaining an SRS wasn't justifiable.
++
+'''
+
+[[chapter-app-design-design]]
+=== Design
+
+// What is the difference between design and architecture?
+How we think about the system will depend on how closely we look at the system's details.
+Knowing that architecture is design (and vice versa), the next question to answer is what to focus on when designing a system.
+
+==== Design versus Implementation
+
+System design bridges the gap between what the system needs to achieve and how it will be built.
+Designing a system means translating system requirements into system structures--creating system components and relationships while respecting constraints and forces that apply to the system.
+
+// The role of an architect
+Architects and developers both make decisions with long-lasting impact.
+Some decisions focus on system-wide properties such as maintainability, reliability, security, performance, and cost.
+Other decisions focus on structure and implementing functionality that allows code to evolve.
+
+Implementation emerges as a result of providing functionality, which is in line with the quality attributes.
+However, addressing one quality attribute may worsen another, this is because quality attributes interact and often conflict.
+For example, increasing security can reduce performance or usability, and improving scalability can increase cost and complexity.
+System design consists of recognizing these trade-offs and making choices based on measurable experiments when possible.footnote:[Beware of becoming an https://www.joelonsoftware.com/2001/04/21/dont-let-architecture-astronauts-scare-you[architecture astronaut], who operates at a level so high that it's detached from reality.]
+Architects and developers share this responsibility.
+In small organizations or teams, a single person may handle both the architect and developer roles.
+The test ground that validates architects’ and developers' decisions is the production environment.
+
+// What is a good design and implementation?
+The question to ask is, what are the qualities of a well-designed system?
+These qualities will depend on your goals.
+For example, Robert C. Martin (a.k.a Uncle Bob) in his book https://www.oreilly.com/library/view/clean-architecture-a/9780134494272[Clean Architecture], argues that a well-architected system should allow its designers to add features that are easy to deploy, modify, and extend.
+On the other hand, Thomas Roy Fielding in https://ics.uci.edu/~fielding/pubs/dissertation/net_app_arch.htm[Architectural Styles and the Design of Network-based Software Architectures. Chapter 2 Learning API Styles] when creating representational state transfer (REST), focuses on the following, long list of qualities: performance, scalability, simplicity, modifiability, visibility, portability, reliability.
+
+However, the system's quality attributes are only some of the concerns to be addressed.
+As you approach the system's lower levels (the code) and start implementing the system functionality, you focus on additional attributes, like making the code readable, testable, and easy to debug.footnote:["Everyone knows that debugging is twice as hard as writing a program in the first place. So if you're as clever as you can be when you write it, how will you ever debug it?". Quoting https://www.amazon.com/Elements-Programming-Style-2nd/dp/0070342075[The Elements of Programming Style] 2nd edition by Brian W. Kernighan, P. J. Plauger, McGraw-Hill 1978.]
+Various approaches exist to achieve these goals.footnote:[See for example the https://www.oreilly.com/library/view/clean-code-a/9780136083238[Clean Code, Robert C. Martin] (and the corresponding http://cleancoder.com/products[talks]) and https://www.amazon.com/Philosophy-Software-Design-2nd/dp/173210221X[A Philosophy of Software Design, John Ousterhout] book (and the corresponding https://youtu.be/bmSAYlu0NcY[talk]). See also https://github.com/johnousterhout/aposd-vs-clean-code[A discussion between John Ousterhout and Robert Martin] about differences between their approaches. Last but not lest method worth reading about is https://dannorth.net/blog/cupid-for-joyful-coding/[CUPID] by Dan North.]
+
+// Design as an activity for architects
+One could think that designing is an activity strictly performed by architects, and that design produces high-level diagrams or blueprints of a system.
+This isn't the case, since all phases in SDLC are affecting each other.
+The application design is put to the test in each phase, and any findings discovered there may require the design to be changed.
+The strongest forces though are between the design and implementation phases of SDLC.
+
+There are two popular approaches for system design: top-down and bottom-up.
+
+* Top-down: Looks at the system from the highest level.
+In this view, a system is perceived as one unit, and then it's broken down into smaller parts, e.g., a framework used to built the system is broken down into libraries, a library into modules, a module into classes, and a class into methods.
+The top-down approach works well when the system's requirements are well understood.
+
+* Bottom-up: Looks at the system from lowest-level.
+At the lowest-level, the system is perceived as a collection of small individual parts that are then combined into bigger parts that eventually become a complete system.
+The bottom-up approach is advantageous in a situations where system's requirements aren't well understood.
+
+You could combine both approaches to get the best of both.
+In this hybrid approach, you switch between the top-down and bottom-up (and vice versa) methods as needed.
+
+// Sidebar
+Strategic versus Tactical Design::
++
+'''
+Another way to create a balanced system design is to focus on both strategic goals and tactical steps.
++
+* Strategic design: Care about decisions that will stand the test of time.
+Being strategic requires thinking about trade-offs and prioritization, constraints (internal and external), and the environment in which the system will operate.
++
+* Tactical design: Care about decisions to help you implement the system's functionality.
+Being tactical requires thinking about the system's structure, its components, and how they interact.
++
+Whether it's a strategic or tactical design, the impact of the decisions will be long-lasting.
+John Ousterhout writes about it in his book https://www.amazon.com/Philosophy-Software-Design-2nd/dp/173210221X[A Philosophy of Software Design].
+He describes an extreme case of tactical design and coins the term a _tactical tornado_--describing a developer who is delivering functionality as fast as possible, making short-sighted decisions that cause havoc that is hard to repair.
++
+'''
+
+==== Domain Modeling
+
+From a software development perspective, a domain is http://www.cs.sjsu.edu/~pearce/modules/lectures/ooa/analysis/DomainModeling.htm[collection of related concepts, relationships, and workflows].
+Domain modeling is the process of representing domain concepts in software.
+The domain tends to change with time, and so does the model.
+For example, founded in 1994 by Jeff Bezos, Amazon Inc was initially an online bookstore; now, it's an e-commerce platform, cloud provider, and media company.
+
+When https://www.thoughtworks.com/insights/blog/agile-project-management/domain-modeling-what-you-need-to-know-before-coding[modeling a domain], you need to think about the following:
+
+* Domain: What is the application scope?
+What implicit information (assumptions) can you deduct from the domain?
+
+* Model/Entity: What are the models/entities specific to the domain?
+
+* Relationships: What are the relations among these models/entities?
+
+* Constraints: Are there any (internal or external) technical, legal, compliance, or other constraints you must consider?
+
+* Workflows: Are there any workflows that describe how these models/entities interact?
+A workflow could describe a state of an entity and be presented as a state diagram.
+
+// Modeling WFS
+Knowing the application's purpose and requirements we'll perform a domain modeling exercise for our WFS.
+The goal is to capture the domain's concepts, such as entities and their relationships.
+After answering the above questions, we can build a model of the WFS that looks like the one in <<chapter-app-design-domain-modeling>>.
+
+[[chapter-app-design-domain-modeling]]
+.Domain Modeling
+====
+[source]
+----
+Domain: Meteorology
+Models (Entities):
+  User
+  City
+  Weather forecast
+  Weather historical
+Relationships:
+  The city has many forecast records
+  The city has many weather history records
+Research:
+  Explore existing weather API for inspiration
+  Weather history reaches year 1940
+  Weather indicators: rain, showers, snowfall, sunrise, sunset, temperature max,
+                      temperature min, UV index max, and wind speed max
+Workflows:
+  Follow authentication workflow
+----
+====
+
+// Sidebar
+Event Storming::
++
+'''
+Domain modeling is a technique suitable for modeling simple domains.
+However, this technique may fall short for projects where the domain requires multiple people to collaborate.
++
+Invented by Alberto Brandolini https://en.wikipedia.org/wiki/Event_storming[event storming] is workshop-based collaborative method that is complementary to https://en.wikipedia.org/wiki/Domain-driven_design[domain-driven design].footnote:[Domain-driven design is an approach based on collecting information from the domain's experts.]
+Event storming is suitable when the domain isn't fully understood.
++
+The event storming workshop gathers various domain experts.
+The domain is stormed out visually by sticky notes of different colors, where a note may represent user/actor, domain event, command, aggregate, external system, process, view/read model, policy, question marks/risks.
+Related sticky notes are grouped into bounded context--a domain's conceptual section.
++
+Modeling activity in an event storming session finds and groups the domain's concepts (sticky notes) in the order of event occurrence in the system.
+Moreover, it focuses on finding interactions among different parts of the system.
++
+<<chapter-app-design-event-storming>> represents the event storming concepts that define the domain for WFS.
++
+[[chapter-app-design-event-storming]]
+.Weather Service
+|===
+| Actors a|
+* Temperature sensor
+* Humidity sensor
+* UV-index sensor
+| Events a|
+* Temperature measured
+* Humidity measured
+* UV-index measured
+| Aggregates | Measurement
+| Commands | Measure weather
+| Read Models | Forecast
+| Bounded Contexts | Weather forecast
+|===
++
+Event storming favors certain types of software architectures, such as event-driven systems because it helps to model event propagation and its effects on the system.
+Microservices architecture is another example where event storming may be applicable.
+It helps to understand service boundaries and their interactions, and find integration points.
++
+In our case, event storming wasn't a good fit because our domain is small and well-understood.
++
+'''
+
+The model may be refined as the solution is developed and more information about the domain is uncovered.
+However, the domain modeling approach leaves the application user out of the picture--the model focuses on the system's functionality.
+
+==== Resolving Architecturally Significant Requirements
+
+After understanding the system requirements and the domain model, the next step is to choose the tools that the system will be built with.
+The decisions in this section will have long-lasting effects on the solution.
+These decisions will address most of NFRs.
+
+The first decision is what programming language to use.
+We chose Python--one of the most popular programming languages according to https://survey.stackoverflow.co/2023/#most-popular-technologies-language-other[stackoverflow's survey 2023].
+
+The next decision is influenced by the _"Service has a content management system for admin user"_ requirement.
+This functional requirement comes as an exception since the section deals with NFRs.
+The question to answer was whether to use a framework or not.
+We chose the https://www.djangoproject.com/[Django] framework because of its built-in content and user management system.
+One of our goals is that the code associated with the book is maintainable for a longer period of time, in addition to the general concepts, which are also expected to be valid during a long time.
+Furthermore, Django is actively developed, well supported, has many plugins, and a large community.
+
+After choosing the framework, the next NFR to tackle is _"Service is deployed as one unit"_.
+We answer this requirement by choosing suitable to our context software architectural style.
+Software architectural style is a blueprint that helps to address common software design challenges to ensure that the designed software meets functional and non-functional requirements.
+There are a lot of software architectural styles to choose from.
+However, we decided to implement our WFS service as a modular monolith--the service is built as one application where each module cares about specific domain concern.
+
+Modules in the WFS ended up being a mix of domain and technical partitioning.footnote:[Mark Richards explains this division in https://youtu.be/WOEYxPM0ljQ[domain versus technical partitioning] talk.]
+The reason for such a mix was the result of the domain modeling applied in the context of a framework.
+Frameworks offer a structure, however it can handcuff you, and you become a prisoner of the framework--we didn't want that.
+
+We leaned towards using a database to fulfil the _"Service provides weather historical data"_ requirement.
+We chose the open-source https://www.postgresql.org/[PostgreSQL] database, due to its popularity and support in Django.
+
+Another decision is driven by the following NFRs:
+
+* Service operates in a local environment.
+
+* Service is runnable by a majority of book readers.
+
+To satisfy these two requirements, we chose https://www.docker.com/[Docker] as a containerization solution, and https://github.com/features/codespaces[GitHub Codespaces] as runtime environment.
+Making these decisions, we effectively tackled deployability and portability.
+
+The last requirement described in this section is _"Service is testable"_.
+For testing, we chose native to the framework test library, supplemented by https://behave-django.readthedocs.io/en/stable/[django-behave].
+
+// Sidebar
+Architecture Decision Record::
++
+'''
+If you are a one-person army, the likelihood that you preserve the reasons for system design decisions may be near 0%.
+Unfortunately, that's also the reality of many collaborative software projects.
+The purpose of preserving the design decisions in writing is to help future designers to understand and maintain the system when you are no longer around.
+Moreover, writing down the design decisions can help to clarify your own thoughts.footnote:["To think, to really think, you have to write"&#8212;quote from Leslie Lamport's https://youtu.be/-4Yp3j_jk8Q?t=3m20s[Thinking Above the Code] talk.]
+However, it's not feasible to capture all the reasons for a decision, and reasons missing from the record often matter.
++
+An Architecture Decision Record (https://adr.github.io/[ADR]) is a document that captures software architecture decisions created by architects and developers, along with the rationale, context, and consequences associated with those decisions.
++
+Created by Michael Nygard https://www.cognitect.com/blog/2011/11/15/documenting-architecture-decisions[ADR template] is one of the approaches to write ADRs.
+Michael's template contains:
++
+. Title: Concise description of the ADR.
+. Date: Status change date.
+. Status: one of the proposed, accepted, deprecated, or superseded
+. Context: Description of forces (including technological, political, or social) surrounding the decision.
+. Decision: A decision starts with "We will …" sentence.
+. Consequences: Description of the results of the decision. Consequences are categorized as positive and negative, as well as risks associated with them.
++
+When writing an ADR, its good to think about the second law of software architecture--_"Why is more important than how"_--described in the book https://www.oreilly.com/videos/fundamentals-of-software/9781663728357/[Fundamentals of Software Architecture].
+When writing an ADR it's also useful to provide results from proof of concept experiments, or sketches of possible implementations, so the ADR is grounded in reality, instead of being only a "decision".
++
+'''
+
+==== System Architecture
+
+Knowing the WFS's requirements, users, entities and their relationships, as well as the tools with which we'll build the system, the next step is to create an overview of the system architecture.
+This activity aims to identify the system's major components and users interactions.
+
+// Sidebar
+C4 Model::
++
+'''
+Created by Simon Brown, the https://c4model.com/[C4] model is a tool that allows to describe a system at four levels of abstraction:
++
+1. Context: At the highest level, we look at the system as a whole, the environment that it's surrounded by, external systems that it interacts with, and entities that interact with it.
+2. Container: At the lower level, we look at the system as a collection of containers and their relationships.
+At this level, a container is described as a collection of its components, e.g., interfaces, databases, and queues.
+3. Component: At the yet another level below, we zoom in on an individual container and look at the components that compose it.
+In this view, one component could be responsible for authentication, another for notification, or logging.
+4. Code: At the lowest level, the component is described with the diagrams that translate to code e.g., class diagram (to describe the static structure of a class such as attributes, methods, and the relationships to other classes), entity-relationship diagram (to describe the data and its relationships) or sequence diagram (to capture process and data flow).
++
+'''
+
+<<chapter-app-design-wfs-c4-context.png>> shows an overview of the WFS system, its users (human and non-human), as well as external dependencies (https://open-meteo.com/[open-meteo.com] API).
+
+[[chapter-app-design-wfs-c4-context.png]]
+.C4 context diagram
+image::wfs-c4-context.png[C4 Context Diagram]
+
+[TIP]
+====
+Creating understandable diagrams is a skill that is hard to master.
+If you'd like to develop visual communication skills, you may enjoy the https://communicationpatternsbook.com/[Communication Patterns] book by Jacqui Read.
+====
+
+<<chapter-app-design-wfs-c4-container.png>> is a C4's container diagram of our WFS.
+The diagram shows external systems, WFS's components and users.
+
+[[chapter-app-design-wfs-c4-container.png]]
+.C4 container diagram
+image::wfs-c4-container.png[C4 Container Diagram]
+
+Although the diagram was created in the design phase of SDLC, it was updated later due to limitations found in the implementation--the effect of technical decisions on design.
+To fulfill the weather forecast alert requirements, we decided to choose https://www.starlette.io/[Starlette]--framework that supports WebSocket.
+This decision required us to run two servers, one for Django, which serves the JavaScript WebSocket client to the browsers, and another for Starlette, the WebSocket server.
+This resulted in a synchronization problem between the two servers, solved using a Pub/Sub messaging system, in our case Redis.
+
+[TIP]
+====
+Instead of using general-purpose diagramming tools, you could generate the C4 diagrams using a domain-specific language (DLS) code tool https://structurizr.com/.
+It offers the advantages of being designed specifically for C4 and allowing the designer to focus on the relations within the system instead of spending time on manually arranging boxes and arrows.
+====
+
+// Sidebar
+Software Architecture Document::
++
+'''
+A Software Architecture Document (https://radixweb.com/blog/software-architecture-documentation-guide[SAD]) is a document that aims to describe the system's architecture in detail.
+Its purpose is to provide a system overview (logical, physical, deployment) by gathering information about architected systems such as C4 diagrams, ADR, or system requirements.
+The preliminary audience of this document are architects and developers.
+The secondary audience would include contributors and project managers.
+SAD need to follow system evolution--significant changes to the system need to be reflected in the SAD.
++
+https://docs.arc42.org/home/[ARC42] is software documentation template used to document and communicate software architecture.
+As a creator of SAD based on an arc42 template, you can focus on the relevant parts.
+For example, if you don't need a runtime or deployment view, you can skip it or add it later when the need for it emerges.
++
+Many architectural decisions about WFS come from informal conversations.
+Hence, we didn't create a SAD document.
++
+'''
+
+=== Implementation
+
+The planning phase resulted in the creation of FRs and NFRs that were fed to the design phase.
+In the design phase, we chose a technical stack--Python, Django, PostgreSQL, Docker, and GitHub Codespaces.
+Having the plan and the design in place, we can move to the next phase, which is the implementation phase.
+
+The implementation phase (applied architecture phase) is where the rubber meets the road.
+In this phase, we'll translate the design into code, and we'll use a bottom-up approach to do so.
+
+Whether it's relational, document, key-value, graph, search, or another type of database, its goal is to persist the modeled domain into a schema optimized for storage and retrieval.
+Application logic, also known as business logic, is responsible for describing domain behavior, managing how the application state changes over time, and enforcing the domain's rules.
+A database can be viewed as a storage mechanism of the current state of the domain.
+In contrast, application logic provides the behavior to update the state according to domain rules.
+
+To create the WFS, we need concrete artifacts from the domain modeling method, such as entities and relationships among them.
+To represent domain concepts in the database structure, we'll use a Django's Object Relational Mapper (ORM).
+ORM is an abstraction that allows the mapping of domain entities to relational database tables and the other way around.
+ORM hides the complexity of SQL queries by providing an interface for Create, Read, Update, and Delete (CRUD) operations.
+
+// Sidebar
+Data models::
++
+'''
+Data models are the backbone of any application or Web API.
+While designing a data model and choosing a field, you need to think about the following:
++
+* Naming: How will the field be named?
+Is it descriptive enough?
+Are you going to use plurals versus singulars or snake_case versus camelCase notation?
+How will you describe boolean fields, etc?
+* Datatype: What datatype fits the given field?
+A correct datatype can reduce storage space and improve performance.
+* Constraints: What constraints will be applied to the field?
+For example, the system provides input validation, or https://en.wikipedia.org/wiki/Buffer_overflow[buffer overflow] prevention.
+* Normalization: How entities are related to each other.
+In the WFS example, a city's relationship to forecast and history is one-to-many.
+* Denormalization: What if the performance is the top priority of your application?
+If so, you could duplicate data in the database to avoid joins.
+* Performance: How will the field affect the database performance?
+Should all the fields have indexes?
++
+'''
+
+The <<chapter-app-design-models>> shows WFS' data model: entities and their relations implemented as a https://docs.djangoproject.com/en/5.0/topics/db/models/[Django models].
+
+[[chapter-app-design-models]]
+._src/django/app/core/models/models.py_
+====
+[source,python]
+----
+from django.db.models import Model
+...
+
+class City(Model):
+    uuid = UUIDField(...)
+    name = CharField(...)
+    country = CharField(...)
+    region = CharField(...)
+    timezone = CharField(...)
+    latitude = FloatField(...)
+    longitude = FloatField(...)
+    created_at = DateTimeField(...)
+    updated_at = DateTimeField(...)
+
+class WeatherForecast(Model):
+    city = ForeignKey(City, related_name="forecast", ...)
+    date = DateField(...)
+    rain_sum_mm = DecimalField(...)
+    showers_sum_mm = DecimalField(...)
+    snowfall_sum_cm = DecimalField(...)
+    sunrise_iso8601 = DateTimeField(...)
+    sunset_iso8601 = DateTimeField(...)
+    temperature_max_celsius = DecimalField(...)
+    temperature_min_celsius = DecimalField(...)
+    uv_index_max = DecimalField(...)
+    wind_speed_max_kmh = DecimalField(...)
+    created_at = DateTimeField(...)
+    updated_at = DateTimeField(...)
+
+class WeatherHistory(Model):
+    city = ForeignKey(City, related_name="history", ...)
+    date = DateField(...)
+    rain_sum_mm = DecimalField(...)
+    snowfall_sum_cm = DecimalField(...)
+    sunrise_iso8601 = DateTimeField(...)
+    sunset_iso8601 = DateTimeField(...)
+    temperature_max_celsius = DecimalField(...)
+    temperature_min_celsius = DecimalField(...)
+    wind_speed_max_kmh = DecimalField(...)
+    created_at = DateTimeField(...)
+    updated_at = DateTimeField(...)
+----
+====
+
+It may be difficult to see the relationship among concepts if they are written as a text.
+This is where the entity relationship diagram (ERD) comes in handy.
+The entity relationship model allows us to describe a domain's hierarchy with four constructs: entities and their attributes, relationships among entities, cardinality of the relationship, and constraints.
+
+<<chapter-app-design-wfs-erd-core.png>> shows the ERD of WFS.
+The diagram was created using the https://django-extensions.readthedocs.io/en/latest/index.html[django-extensions] package.
+The entity (model) is represented as a table name, where the first column contains the model's attributes, and the second column contains Django's model fields.
+The relationship is shown as a line connecting the boxes (database tables).
+A dot symbol on the line marks the relationship's cardinality: the entity at the dotted end can have multiple instances associated with a single instance of the entity at the other end.
+In our case, the relationship's cardinality from city to weather data is _one-to-many_, and is read like this: _A single city has zero or more weather forecasts and historical records_.
+
+[[chapter-app-design-wfs-erd-core.png]]
+.Entity Relationship Diagram
+image::wfs-erd-core.png[Entity Relationship Diagram]
+
+<<chapter-app-design-wfs-erd-core.png>> was created by executing the steps shown in <<chapter-app-design-wfs-erd>>.
+The advantage of generating a graph from code is that we don't have to redraw the diagram manually every time the model changes.
+
+[NOTE]
+====
+The generated files will be located in the _src/django/app_ directory.
+====
+
+[[chapter-app-design-wfs-erd]]
+.Generating ER diagram for WFS
+====
+[source]
+----
+# Setup the lab environment <1>
+cd src/django
+docker compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g)
+docker compose up --detach --wait
+
+# Generate dot file from app's models <2>
+docker compose exec app python manage.py graph_models \
+       --all-applications > app/wfs.dot
+
+# Convert dot file to image <3>
+docker compose exec app dot -T png wfs.dot -o wfs.png
+
+# Convert dot file to image for selected models <4>
+docker compose exec app python manage.py graph_models \
+       --include-models City,WeatherForecast,WeatherHistory \
+       --output wfs-erd-core.png
+----
+====
+
+<1> Execute the lab setup instructions: navigate to the lab's directory, build the Docker images, and start containers.
+
+<2> Generate https://www.graphviz.org/[GraphViz] dot file.
+A dot file is a text file describing a graph in https://www.graphviz.org/doc/info/lang.html[DOT language].
+Graphviz is graph visualization software that converts a dot file into an image file.
+
+<3> Generate an ER diagram for all data models.
+
+<4> Generate an ER diagram for selected models: +City+, +WeatherForecast+, +WeatherHistory+
+
+[[chapter-app-design-testing]]
+=== Testing
+
+To help the software meet its requirements, it needs to be tested.
+
+[TIP]
+====
+Some level of testing, such as test-driven development (TDD) or behavior-driven development (BDD), may happen during the implementation phase.
+====
+
+In this project, we use three testing strategies:
+
+* Behavior-driven-development--where each test has an acceptance criteria, associated with a user story.
+
+* Integration testing--where we test APIs methods.
+
+* End-to-end testing--where we test the system as a whole, as if the end-user was using it.
+End-to-end testing is feasible for WFS, since calling the implemented APIs does not require a browser.
+Testing of such a system can be performed more reliably (with less test flakiness) than otherwise.
+
+When working with AI, a test suite acts as a safety net, aiming to prevent the AI from derailing or introducing regressions.footnote:[See, https://www.youtube.com/watch?v=kvZGJVAZwr0#t=12m37s[AI's 70% problem w/ Addy Osmani] talk.]
+However, tests as guardrails are insufficient to guide the development process.footnote:[See, Rich Hickey talk https://www.youtube.com/watch?v=SxdOUGdseq4#t=16m08s["Simple Made Easy"] by Rich Hickey.]
+
+==== Behavior-driven Development
+
+// Transition from user story to BDD
+A user story is a technique used to capture system functionality as described from a user perspective.
+The technique encourages collaboration between SMEs and designers.
+However, it's missing the explicit focus on testing the functionality.
+Behavior-driven development is a technique that maps a user story to a test.
+
+// What is BDD?
+https://en.wikipedia.org/wiki/Behavior-driven_development[BDD] is an evolution of TDD and acceptance-test-driven design (ATDD).
+In TDD (a method created by Kent Beck), one first writes a test and then code to pass the test--hence, the test drives development.
+ATDD is a methodology that focuses on client-designer(architect/developer)-tester collaboration.
+In ATDD method, acceptance criteria are defined before implementation.
+BDD is a revision of TDD and ATDD that binds software requirements and acceptance testing (verification that the system meets the requirements) by defining acceptance criteria--conditions the system should satisfy.
+
+[TIP]
+====
+BDD is a fusion of two languages: the language of user stories and the language of acceptance criteria.
+====
+
+Below is a BDD template.
+It describes a feature, specifies the system's behavior, and provides acceptance criteria.
+
+  Title: Feature title.
+  Narrative:
+    As a <role>
+    I want <goal>
+    so that <benefit>
+  Acceptance criteria:
+    Given initial context
+    When event happens
+    Then expected outcome occurs
+
+What stands out from this template is the inclusion of the user story.
+The acceptance criteria are written in the https://cucumber.io/docs/gherkin/reference/[Gherkin language]--given, when, then--describing them in a human-readable form.
+Note that BDD stores the user story and the acceptance criteria together in the code.
+This may help to prevent their divergence when the requirements or the implementation change.
+
+// Example of BDD
+Let's apply the BDD template to the WFS.
+The <<chapter-app-design-atom-feed-feature>> example describes the system's feature that allows a user to subscribe to the weather forecast feed--an Atom feed.
+The specification follows Gherkin language and is divided into three sections:
+
+* The feature: Title and a user story that describes the system's functionality.
+* The scenario: Describes a specific test case through a sequence of steps, each beginning with a https://cucumber.io/docs/gherkin/reference/#keywords[Gherkin's keyword].
+The _Given_ clause describes the initial condition.
+The _When_ clause describes the user's actions.
+The _Then_ and _And_ clauses describe the expected outcomes of the user action.
+The first (_Then_) clause corresponds to the outcome when the feed is returned, and the second (_And_) clause additionally specifies that the feed is in the Atom format.
+
+[[chapter-app-design-atom-feed-feature]]
+.Feature Describing WFS's Atom Feed
+====
+[source,gherkin]
+----
+Feature: Weather Forecast as an Atom Feed
+
+  As a user
+  I want to subscribe to the weather forecast via an Atom feed
+  so that I can stay informed about the latest updates
+
+  Scenario: Retrieve the weather forecast as an Atom feed
+    Given the URL for the weather forecast's Atom feed
+    When the feed is requested
+    Then the feed is returned successfully
+    And it is in Atom feed format
+----
+====
+
+Let's test our implementation by following the <<chapter-app-design-test-with-behave>> instructions.
+
+[[chapter-app-design-test-with-behave]]
+.Running WFS's BDD tests
+====
+[source]
+----
+# Run acceptance tests
+docker exec django-app python manage.py behave --no-input
+
+Feature: Weather Forecast as an Atom Feed
+  As a user
+  I want to subscribe to the weather forecast via an Atom feed
+  so that I can stay informed about the latest updates
+  Scenario: Retrieve the weather forecast as an Atom feed
+    Given the URL for the weather forecast's Atom feed
+    When the feed is requested
+    Then the feed is returned successfully
+    And it is in Atom feed format
+
+1 feature passed, 0 failed, 0 skipped
+1 scenario passed, 0 failed, 0 skipped
+4 steps passed, 0 failed, 0 skipped, 0 undefined
+Took 0m0.003s
+----
+====
+
+[[chapter-app-design-maintenance]]
+=== Maintenance
+
+The maintenance phase in SDLC is where the software is patched, updated, improved, and monitored.
+You may notice that two phases (often included) appear to be missing from this lifecycle diagram: security and documentation.
+
+Some diagrams describing the SDLC show security as a separate phase.
+This is problematic because it suggests that security awareness is limited to one place.
+We perceive security as a force that is present in all phases of SDLC.
+
+Some projects also delay creating documentation until the maintenance phase. 
+The idea is that software that has yet to exist in its final form cannot be fully documented, so it’s better not to document it at all.
+This approach has several drawbacks, the most important being that one may never find time to create documentation, as software is never finished until it is retired.
+A more realistic approach to documentation is to draft at least some of it during all phases of SDLC.
+
+As authors, we aim to ensure that the WFS is documented, works, and follows technological progress over time.
+
+Understanding of system features and quality attributes doesn't happen at one specific phase in the SDLC.
+Instead, it's a collaborative effort of various non-technical and technical people.
+This effort should be documented to give an up to date overview of the system.
+
+This guide introduced several documents that could be used to document the system at different levels, such as SRS, FRs, NFR, ADR, and SAD.
+However, one document, the service-level agreement (SLA) is associated in particular with production-grade APIs.
+
+In the case of the WFS--which is nothing like production-grade--the application runs only locally on demand, no SLA is required.
+
+[WARNING]
+====
+There is one thing that all documents share in common, and that is a need for their maintenance.
+One of the hardest things is to keep documentation up to date as the system evolves.
+====
+
+==== Service-level Agreement
+
+A https://sre.google/sre-book/service-level-objectives/[service-level agreement] is a contract between a service provider and a consumer.
+The document is used to state and manage expectations, conditions, and interactions between the client and the service provider that both parties must respect.
+Typically, an SLA contains the definition of service, relevant parties, performance metrics goals that the provider guarantees, and methods describing how to monitor and measure the metrics--an SLA might contain penalties for not meeting these goals.
+The SLA document should include the reporting process and specify the expected time frame for issue resolution.
+These elements contribute to the service's quality and provide a mutual foundation for resolving disputes.
+An example of SLA would be a provider's commitment to make service available 99.99% of the time within a month.
+
+== Exercises
+
+1. There are many SQL vendors out there, but we chose PostgreSQL to persist data for the WFS.
+Your task is to write an ADR that will justify this decision.
+Tip: Remember the second law of software architecture--why is more important than how.
+The solution for this exercise can be found in this code repository.
+
+2. Implement and test the BDD feature for the following user story.
+_As a user I want to view the weather forecast page for a specific city so that I can plan my activities._
+Write two scenarios: one for a successful request when page is rendered (200 (OK) status code), and one for a failed request when page isn't found rendered (404 (Not Found) status code).
+The code repository contains the exercise solution.
+See feature BDD file located at _src/django/app/tests/acceptance/features/city_forecast.feature_ and tests located at _src/django/app/tests/acceptance/steps/city_forecast_test.py_
++
+[source,bash]
+----
+docker compose exec app \
+      python manage.py behave tests/acceptance/features/city_forecast.feature
+----
+
+3. Write a markdown specification of the previous exercise that can be read by agentic AI, feed it to the LLM of your choice, and check who did a better implementation, you or AI.
+
+== Summary
+
+In this guide, you learned how to design an application by using informal methods such as feature list and domain modeling, and how to translate client needs into functional (FR), and non-functional requirements (NFR).
+In this process you explored various methods for managing and documenting the project requirements, such as user stories, BDD acceptance criteria, SRS, ADR, SAD, or SLA documents.
+Additionally, you used generative AI to assist the development effort of the WFS project.

@@ -1,6 +1,9 @@
 ﻿## Weather Forecast Service
 
 The weather forecast service (WFS) is a Django-based application that provides various APIs to access weather data.
+
+More information about the application's design can be found in [Application Design](./docs/APP-DESIGN.asciidoc).
+
 The following are [C4](https://c4model.com/) diagrams of WFS.
 
 ###### C4 Context Diagram

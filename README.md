@@ -18,6 +18,7 @@ For more information about the book, visit [learningapistyles.com](https://lear
 | 2. API Design |  |
 | 3. [Network](./src/network/README.md) | [![src/network](https://github.com/ldynia/learning-api-styles/actions/workflows/src-network-tests.yaml/badge.svg)](https://github.com/ldynia/learning-api-styles/actions/workflows/src-network-tests.yaml) |
 | 4. [Web Protocols](./src/http/README.md) | [![src/http](https://github.com/ldynia/learning-api-styles/actions/workflows/src-http-tests.yaml/badge.svg)](https://github.com/ldynia/learning-api-styles/actions/workflows/src-http-tests.yaml) |
+| [Application Design](./src/django/docs/APP-DESIGN.asciidoc) | Bonus chapter not present in the book |
 | 5. [REST](./src/django/docs/REST.md) | [![src/django rest](https://github.com/ldynia/learning-api-styles/actions/workflows/src-rest-tests.yaml/badge.svg)](https://github.com/ldynia/learning-api-styles/actions/workflows/src-rest-tests.yaml) |
 | 6. [GraphQL](./src/django/docs/GRAPHQL.md) | [![src/django graphql](https://github.com/ldynia/learning-api-styles/actions/workflows/src-graphql-tests.yaml/badge.svg)](https://github.com/ldynia/learning-api-styles/actions/workflows/src-graphql-tests.yaml) |
 | 7. [Web Feeds](./src/django/docs/WEB-FEEDS.md) | [![src/django atom](https://github.com/ldynia/learning-api-styles/actions/workflows/src-atom-tests.yaml/badge.svg)](https://github.com/ldynia/learning-api-styles/actions/workflows/src-atom-tests.yaml) |
