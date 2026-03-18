@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 function usage() {
-  echo "Usage: ./$0 http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls"
+  echo "Usage: ./$0 http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls|dns"
 }
 
 WORK_DIR=$(basename $(pwd))
@@ -15,15 +15,15 @@ if [[ "$WORK_DIR" != "$ROOT_DIR" ]]; then
 fi
 
 if [[ $# -ne 1 ]]; then
-  echo "Error: Client argument is required: http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls"
+  echo "Error: Client argument is required: http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls|dns"
   usage
   exit 1
 else
   CLIENT=$1
 fi
 
-if ! [[ "$CLIENT" =~ ^(http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls)$ ]]; then
-  echo "Error: Incorrect client: $CLIENT. Supported values: http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls"
+if ! [[ "$CLIENT" =~ ^(http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls|dns)$ ]]; then
+  echo "Error: Incorrect client: $CLIENT. Supported values: http0.9|http1.0|http1.1|h2c|h2|http3|firefox|iperf|tcp|tls|dns"
   usage
   exit 1
 fi
@@ -164,6 +164,17 @@ docker compose exec client bash -c \
        cp ${PCAP_FILE} tests"
 # end::start_client_tls_tcpdump[]
 fi
+if [[ "$CLIENT" =~ ^(dns)$ ]];
+then
+# DO NOT INDENT to keep proper include alignment
+# tag::start_client_dns_tcpdump[]
+PCAP_FILE=/tmp/client_${CLIENT}.pcap
+docker compose exec client bash -c \
+       "sudo rm --force ${PCAP_FILE} && \
+       sudo tcpdump -c 2 -w ${PCAP_FILE} 'port 53' && \
+       cp ${PCAP_FILE} tests"
+# end::start_client_dns_tcpdump[]
+fi
 unset docker
 sleep 3
 
@@ -269,13 +280,22 @@ docker compose exec client bash -c \
        curl --http3 --insecure --verbose https://https-server"
 # end::start_client_http3[]
 fi
+if [[ $CLIENT == dns ]];
+then
+# DO NOT INDENT to keep proper include alignment
+# tag::start_client_dns[]
+docker compose exec client bash -c "dig +short example.com @1.1.1.1"    
+# end::start_client_dns[]
+fi
 sleep 3
 
 echo
 
 # stop tcpdump, by sending SIGINT (ctrl+c)
 docker compose exec client bash -c 'sudo kill -SIGINT $(pgrep --full "sudo tcpdump")' || true
-screen -X -S "tcpdump" quit
+screen -ls || true
+echo "tcpdump quit"
+screen -X -S "tcpdump" quit || true
 screen -ls || true
 if [[ "$CLIENT" =~ ^(h2|http3|tls)$ ]];
 then
@@ -545,4 +565,21 @@ docker compose exec client bash -c "tshark --read-file ${PCAP} -Y quic | head -1
 # docker compose exec client bash -c "tshark --read-file ${PCAP} -Y http3 | head -1 | grep --quiet 'STREAM(0), HEADERS: GET /'"
 echo "Test pcap has last http3 packet STREAM(0), HEADERS: 200 OK, DATA"
 docker compose exec client bash -c "tshark --read-file ${PCAP} -Y http3 | tail -1 | grep --quiet 'STREAM(0), HEADERS: 200 OK, DATA'"
+fi
+
+# test the created pcap
+if [[ $CLIENT == dns ]];
+then
+# DO NOT INDENT to keep proper include alignment
+PCAP=tests/client_${CLIENT}.pcap
+echo
+echo "Test pcap can be read"
+# tag::tshark_read_client_dns[]
+docker compose exec client bash -c \
+       "tshark --read-file tests/client_${CLIENT}.pcap"
+# end::tshark_read_client_dns[]
+echo "Test pcap has number of packets 2"
+docker compose exec client bash -c "tshark --read-file ${PCAP} | wc -l | xargs | grep --quiet 2"
+echo "Test pcap has of packets dns 2"
+docker compose exec client bash -c "tshark --read-file ${PCAP} -Y dns | wc -l | xargs | grep --quiet 2"
 fi
