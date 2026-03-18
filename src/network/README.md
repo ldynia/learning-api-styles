@@ -845,7 +845,7 @@ bash tests/tcp_echo.sh netcat
 
 [^12]: See [TLS Essentials 5: Integrity with cryptographic hash functions](https://youtu.be/Nsf9csdBhBE) lecture by Cyrill Gössi.
 
-[^13]: [https://shattered.io](https://shattered.io) provides an example of a SHA-1 collision, where two pdf documents that contain different background color, hash to the same value.
+[^13]: [https://shattered.io](https://web.archive.org/web/20260131225136/https://shattered.io/) provides an example of a SHA-1 collision, where two pdf documents that contain different background color, hash to the same value.
 
 [^14]: [RFC 5869](https://datatracker.ietf.org/doc/html/rfc5869).
 
