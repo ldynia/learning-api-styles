@@ -34,7 +34,7 @@ echo "Executing: $0 $@"
 docker compose exec client bash -c "echo > tests/SSLKEYLOGFILE.client"
 
 # tag::print_tcp_echo_client_pcap[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/tcp_echo_client_${CLIENT}_reference.pcap | \
        bash scripts/trim_client_pcap.sh"
 # end::print_tcp_echo_client_pcap[]

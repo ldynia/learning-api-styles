@@ -164,7 +164,8 @@ echo "cat ${LOGFILE_TCPDUMP}" && cat ${LOGFILE_TCPDUMP}
 echo "Test pcap can be read"
 PCAP="tests/enricher_behavior_${BEHAVIOR}.pcap"
 # tag::tshark_read_enricher_behavior[]
-docker compose exec client bash -c "tshark --read-file tests/enricher_behavior_${BEHAVIOR}.pcap"
+docker compose exec -T client bash -c \
+       "tshark --read-file tests/enricher_behavior_${BEHAVIOR}.pcap"
 # end::tshark_read_enricher_behavior[]
 echo
 if [[ "$BEHAVIOR" =~ ^(caching)$ ]];

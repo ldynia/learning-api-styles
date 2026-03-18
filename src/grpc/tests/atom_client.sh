@@ -186,7 +186,8 @@ PCAP="tests/atom_client_${CLIENT}.pcap"
 if [[ ! "$CLIENT" =~ ^(django)$ ]];
 then
 # tag::tshark_read_atom_client[]
-docker compose exec client bash -c "tshark --read-file tests/atom_client_${CLIENT}.pcap"
+docker compose exec -T client bash -c \
+       "tshark --read-file tests/atom_client_${CLIENT}.pcap"
 # end::tshark_read_atom_client[]
 fi
 echo

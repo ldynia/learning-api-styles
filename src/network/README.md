@@ -89,7 +89,7 @@ List the frames captured by `tcpdump`.
 
 ```bash
 CLIENT=netcat
-docker compose exec client bash -c "tshark --read-file tests/tcp_echo_client_${CLIENT}.pcap"
+docker compose exec --no-tty client bash -c "tshark --read-file tests/tcp_echo_client_${CLIENT}.pcap"
 ```
 
 The output will look similar to the one below.

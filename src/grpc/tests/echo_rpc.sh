@@ -140,7 +140,8 @@ then
 # DO NOT INDENT to keep proper include alignment
 PCAP="tests/echo_rpc_${RPC}_${SECURITY}.pcap"
 # tag::tshark_read_echo_rpc_insecure[]
-docker compose exec client bash -c "tshark --read-file tests/echo_rpc_${RPC}_${SECURITY}.pcap"
+docker compose exec -T client bash -c \
+       "tshark --read-file tests/echo_rpc_${RPC}_${SECURITY}.pcap"
 # end::tshark_read_echo_rpc_insecure[]
 fi
 if [[ "$SECURITY" =~ ^(mtls)$ ]];
@@ -148,7 +149,8 @@ then
 # DO NOT INDENT to keep proper include alignment
 PCAP="tests/echo_rpc_${RPC}_${SECURITY}.pcapng"
 # tag::tshark_read_echo_rpc_mtls[]
-docker compose exec client bash -c "tshark --read-file tests/echo_rpc_${RPC}_${SECURITY}.pcapng"
+docker compose exec -T client bash -c \
+       "tshark --read-file tests/echo_rpc_${RPC}_${SECURITY}.pcapng"
 # end::tshark_read_echo_rpc_mtls[]
 fi
 echo
