@@ -206,6 +206,52 @@ server → client TCP  [ACK]      Seq=617 Ack=101 Len=0 # <6>
 
 The above packet sequence confirms that in HTTP/1.1 the persistence of the TCP connection avoids the three-way handshake RTT in the case of a subsequent HTTP request, reducing its latency.
 
+### DNS request/response
+
+The goal of this section is to demonstrate how to capture DNS traffic.
+
+The example uses `tcpdump` to capture the network traffic.
+The captured traffic is saved into the _client_dns.pcap_ file located in the _tests_ directory.
+
+```bash
+# In a terminal run <1>
+tmux new-session \; split-window -v \;
+
+# In the top pane run <2>
+CLIENT=dns
+PCAP_FILE=/tmp/client_${CLIENT}.pcap
+docker compose exec client bash -c \
+       "sudo rm --force ${PCAP_FILE} && \
+       sudo tcpdump -c 2 -w ${PCAP_FILE} 'port 53' && \
+       cp ${PCAP_FILE} tests"
+
+# In the bottom pane run <3>
+docker compose exec client bash -c "dig +short example.com @1.1.1.1"
+```
+
+1. Create two panes with tmux.
+
+2. Start a fresh packet capture using `tcpdump` on the client.
+The `tcpdump` program will exit after capturing the expected number of 2 packets, and save the captured traffic into the _client_dns.pcap_ file located in the _tests_ directory.
+
+3. Query the `1.1.1.1` DNS server for the IP address of the `example.com` server.
+
+Read the saved packet capture with `tshark`.
+
+```bash
+CLIENT=dns
+docker compose exec --no-tty client bash -c "tshark --read-file tests/client_${CLIENT}.pcap"
+```
+
+You will see a sequence similar to the following.
+
+```
+192.168.114.2 → 1.1.1.1       DNS query example.com
+      1.1.1.1 → 192.168.114.2 DNS query response example.com 93.184.215.14
+```
+
+`192.168.114.2` is the client IP address, `1.1.1.1` is the DNS server IP address, and `93.184.215.14` (it may differ for you) is the IP address of the _example.com_ HTTP server.
+
 <details>
 <summary><strong>HTTP in a Browser</strong></summary>
 
@@ -457,7 +503,7 @@ bash scripts/teardown_containers.sh
 The full functionality, including the lab setup and teardown, can be tested using the provided script.
 It uses [screen](https://www.gnu.org/software/screen/) to execute commands in the background.
 
-Demonstrations including http0.9, http1.0, http1.1, h2c, h2, http3, firefox, iperf, and tcp clients are available.
+Demonstrations including http0.9, http1.0, http1.1, h2c, h2, http3, firefox, iperf, tcp, and dns clients are available.
 
 ```bash
 bash tests/http.sh http1.1

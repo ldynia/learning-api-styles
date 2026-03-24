@@ -124,3 +124,15 @@ jobs:
         if: failure()
         run: |
           docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
+
+      - name: tests/http.sh dns
+        if: always()
+        run: |
+          set -eo pipefail
+          cd src/http
+          bash tests/http.sh dns
+
+      - name: debug
+        if: failure()
+        run: |
+          docker ps -a | grep -v CONTAINER | cut -d' ' -f1 | xargs -I{} -r bash -c "docker container stats --no-stream {} ; docker logs {}"
