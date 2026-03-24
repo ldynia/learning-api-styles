@@ -172,7 +172,7 @@ Stop the `tcpdump` by pressing _Ctrl+C_, and read the saved packet capture with 
 
 ```bash
 CLIENT=http1.1
-docker compose exec client bash -c "tshark --read-file tests/client_${CLIENT}.pcap"
+docker compose exec --no-tty client bash -c "tshark --read-file tests/client_${CLIENT}.pcap"
 ```
 
 You will see the following sequence.

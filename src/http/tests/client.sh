@@ -319,7 +319,7 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_http0.9[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_http0.9[]
 echo "Test pcap has number of packets 10"
@@ -357,7 +357,7 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_http1.0[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_http1.0[]
 echo "Test pcap has number of packets 10"
@@ -395,7 +395,7 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_firefox[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_firefox[]
 echo "Test pcap has more than 1 tcp [SYN]"
@@ -410,7 +410,7 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_iperf[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_iperf[]
 echo "Test pcap has more than 1 tcp [TCP Dup ACK]"
@@ -431,12 +431,12 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_tcp[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_tcp[]
 echo "Test pcap can be read and filtered"
 # tag::tshark_read_client_tcp_filtered[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "${declare_tshark_read_tcp} && \
        tshark_read_tcp tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_tcp_filtered[]
@@ -473,7 +473,7 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_http1.1[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_http1.1[]
 echo "Test pcap has number of packets 12"
@@ -509,7 +509,7 @@ PCAP=tests/client_${CLIENT}.pcap
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_h2c[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcap"
 # end::tshark_read_client_h2c[]
 echo "Test pcap has number of packets 13"
@@ -544,7 +544,7 @@ PCAP=tests/client_${CLIENT}.pcapng
 echo
 echo "Test pcap can be read"
 # tag::tshark_read_client_http3[]
-docker compose exec client bash -c \
+docker compose exec -T client bash -c \
        "tshark --read-file tests/client_${CLIENT}.pcapng"
 # end::tshark_read_client_http3[]
 # These tests are flaky, sometimes there are 12 packets
