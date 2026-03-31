@@ -21,6 +21,8 @@ class WebSocketOriginValidatorMiddleware:
         or if the list is not set.
         The "*" wildcard allows all clients to connect.
 
+        NOTE: This middleware is enabled for all Starlette routes. This change fixes the previously non-working SSE endpoint.
+
         Args:
             scope: The ASGI connection scope dictionary.
             receive: Awaitable callable to receive events.
@@ -29,26 +31,25 @@ class WebSocketOriginValidatorMiddleware:
         Returns:
             Awaitable: The result of calling the next ASGI app or a 403 response if the origin is not allowed.
         """
-        if scope["type"] == "websocket":
-            if not self.allow_origins:
-                response = self.response("Origin not allowed", status_code=403)
-                return await response(scope, receive, send)
-
-            if "*" in self.allow_origins:
-                return await self.app(scope, receive, send)
-
-            # Check if the origin is in the allowed origins
-            headers = Headers(scope=scope)
-            origin = headers.get("origin")
-            for host in self.allow_origins:
-                if host.startswith("*") and host[1:] in origin:
-                    return await self.app(scope, receive, send)
-
-                if host in origin:
-                    return await self.app(scope, receive, send)
-
+        if not self.allow_origins:
             response = self.response("Origin not allowed", status_code=403)
             return await response(scope, receive, send)
+
+        if "*" in self.allow_origins:
+            return await self.app(scope, receive, send)
+
+        # Check if the origin is in the alloodwed origins
+        headers = Headers(scope=scope)
+        origin = headers.get("origin")
+        for host in self.allow_origins:
+            if host.startswith("*") and host[1:] in origin:
+                return await self.app(scope, receive, send)
+
+            if host in origin:
+                return await self.app(scope, receive, send)
+
+        response = self.response("Origin not allowed", status_code=403)
+        return await response(scope, receive, send)
 
     def response(self, body: str, status_code: int):
         """
@@ -85,25 +86,24 @@ class WebSocketTrustedHostMiddleware:
         Returns:
             Awaitable: The result of calling the next ASGI app or a 403 response if the host is not allowed.
         """
-        if scope["type"] == "websocket":
-            if not self.allowed_hosts:
-                response = self.response("Host not allowed", status_code=403)
-                return await response(scope, receive, send)
-
-            if "*" in self.allowed_hosts:
-                return await self.app(scope, receive, send)
-
-            # Check if the host is in the allowed hosts
-            headers = Headers(scope=scope)
-            for host in self.allowed_hosts:
-                if host.startswith("*") and host[1:] in headers.get("host"):
-                    return await self.app(scope, receive, send)
-
-                if host in headers.get("host"):
-                    return await self.app(scope, receive, send)
-
+        if not self.allowed_hosts:
             response = self.response("Host not allowed", status_code=403)
             return await response(scope, receive, send)
+
+        if "*" in self.allowed_hosts:
+            return await self.app(scope, receive, send)
+
+        # Check if the host is in the allowed hosts
+        headers = Headers(scope=scope)
+        for host in self.allowed_hosts:
+            if host.startswith("*") and host[1:] in headers.get("host"):
+                return await self.app(scope, receive, send)
+
+            if host in headers.get("host"):
+                return await self.app(scope, receive, send)
+
+        response = self.response("Host not allowed", status_code=403)
+        return await response(scope, receive, send)
 
     def response(self, body: str, status_code: int):
         """

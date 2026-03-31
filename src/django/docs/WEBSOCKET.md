@@ -120,12 +120,12 @@ The generated documentation is available in the _src/django/docs/api/websocket/o
 cd src/django/docs/api/websocket
 
 # Generate HTML documentation using the _asyncapi/cli_ Docker image
-docker run --rm -it --user=root \
+docker run --rm -it \
        --volume ${PWD}/output:/app/output \
        --volume ${PWD}/v1-schema.yaml:/app/asyncapi.yaml \
        asyncapi/cli generate fromTemplate /app/asyncapi.yaml \
-       @asyncapi/html-template@3.0.0 \
-       --force-write --use-new-generator --output /app/output
+       @asyncapi/html-template \
+       --force-write --output /app/output
 
 # Serve the generated HTML documentation using the Nginx web server
 docker run --rm --detach --publish 127.0.0.1:8888:80 \
