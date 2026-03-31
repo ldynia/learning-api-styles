@@ -389,12 +389,12 @@ The AsyncAPI specification is a standard for describing asynchronous APIs, simil
 cd src/rabbitmq/2.WorkQueue/docs/api/v1.0.0
 
 # Generate HTML documentation
-docker run --rm -it --user=root \
+docker run --rm -it \
        --volume ${PWD}/output:/app/output \
        --volume ${PWD}/work_queue.yaml:/app/asyncapi.yaml \
        asyncapi/cli generate fromTemplate /app/asyncapi.yaml \
-       @asyncapi/html-template@3.0.0 \
-       --use-new-generator --force-write --output /app/output
+       @asyncapi/html-template \
+       --force-write --output /app/output
 
 # Serve documentation with Nginx
 docker run --rm --detach --publish 127.0.0.1:8888:80 \
