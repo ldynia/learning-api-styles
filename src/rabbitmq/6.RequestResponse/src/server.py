@@ -52,7 +52,7 @@ class Server:
         self.channel = self.connection.channel()
 
     def __declare_request_queue(self):
-        self.channel.queue_declare(queue=self.request_queue)
+        self.channel.queue_declare(queue=self.request_queue, durable=True)
 
     def __on_request(self, channel, method, props, body):
         n = int(body)
