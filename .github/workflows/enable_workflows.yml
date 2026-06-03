@@ -1,0 +1,36 @@
+name: enable_workflows
+
+on:
+  # GitHub disables scheduled workflows after 60 days of repository inactivity.
+  # Reference: https://github.com/orgs/community/discussions/86087
+  schedule:
+    - cron: '0 1 1,15 * *' # 1st and 15th of every month at 01:00 UTC
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  enable_workflows:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Re-enable workflows disabled by inactivity
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eo pipefail
+          # Only re-enable workflows in state "disabled_inactivity" (auto-disabled
+          # by GitHub after 60 days of repo inactivity).  Workflows in state
+          # "disabled_manually" were intentionally disabled by the repo owner
+          # and must not be touched.
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows" --paginate \
+            --jq '.workflows[] | [.id, .state, .path] | @tsv' |
+          while IFS=$'\t' read -r workflow_id workflow_state workflow_path; do
+            echo "Found ${workflow_path} state: ${workflow_state}"
+            if [ "${workflow_state}" = "disabled_inactivity" ]; then
+              gh api --method PUT \
+                "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_id}/enable"
+              echo "Enabled: ${workflow_path}"
+            fi
+          done
