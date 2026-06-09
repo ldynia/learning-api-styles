@@ -28,7 +28,7 @@ jobs:
             --jq '.workflows[] | [.id, .state, .path] | @tsv' |
           while IFS=$'\t' read -r workflow_id workflow_state workflow_path; do
             echo "Found ${workflow_path} state: ${workflow_state}"
-            if [ "${workflow_state}" = "disabled_inactivity" ]; then
+            if [ "${workflow_state}" != "disabled_manually" ]; then
               gh api --method PUT \
                 "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow_id}/enable"
               echo "Enabled: ${workflow_path}"
