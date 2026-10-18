@@ -57,12 +57,12 @@ function testFindCity() {
     -H "Cookie: csrftoken=$CSRF_TOKEN" \
     --data-raw '{"query":"query FindCity($cityName: String = \"'$CITY'\") {\n  cities(order: {name: ASC}, filters: {name: {iExact: $cityName}}) {\n    name\n    country\n    region\n  }\n}"}'
 
-  # Read the beginning of the file
-  expected_start='{"data": {"cities": [{"name": "Tokyo", "country": "Japan", "region": "Asia"}]}'
-  file_start=$(docker compose exec app head -c ${#expected_start} response.json)
-
-  # Check if the file starts with the expected string
-  if [ "$file_start" == "$expected_start" ]; then
+  if docker compose exec app jq -e --arg city "$CITY" '
+    (.data.cities | length) == 1 and
+    (.data.cities[0].name == $city) and
+    (.data.cities[0].country == "Japan") and
+    (.data.cities[0].region == "Asia")
+  ' response.json > /dev/null; then
     echo "Test FindCity PASSED"
   else
     echo "Test FindCity FAILED"
@@ -82,17 +82,14 @@ function testCreateCity() {
     -H "Cookie: csrftoken=$CSRF_TOKEN" \
     --data-raw '{"query":"mutation CreateCity {\n  createCity(\n    data: {name: \"Warsaw\", country: \"Poland\", region: \"Europe\", timezone: \"Europe/Warsaw\", latitude: 52.249782, longitude: 21.012176}\n  ) {\n    uuid\n    name\n    country\n    region\n    timezone\n    latitude\n    longitude\n  }\n}"}'
 
-  EXPECTED_RESPONSE='{
-    "name": "Warsaw",
-    "country": "Poland",
-    "region": "Europe",
-    "timezone": "Europe/Warsaw",
-    "latitude": 52.249782,
-    "longitude": 21.012176
-  }'
-
-  # Use jq to compare the actual response with the expected response
-  if docker compose exec app jq -e --argjson expected "$EXPECTED_RESPONSE" '.data.createCity | .name == $expected.name and .country == $expected.country and .region == $expected.region and .timezone == $expected.timezone and .latitude == $expected.latitude and .longitude == $expected.longitude' response.json > /dev/null; then
+  if docker compose exec app jq -e '
+    (.data.createCity.name == "Warsaw") and
+    (.data.createCity.country == "Poland") and
+    (.data.createCity.region == "Europe") and
+    (.data.createCity.timezone == "Europe/Warsaw") and
+    (.data.createCity.latitude == 52.249782) and
+    (.data.createCity.longitude == 21.012176)
+  ' response.json > /dev/null; then
     echo "Test CreateCity PASSED"
   else
     echo "Test CreateCity FAILED"
@@ -114,13 +111,10 @@ function testUpdateCity() {
     -H "Cookie: csrftoken=$CSRF_TOKEN" \
     --data-raw '{"query":"mutation UpdateCity($city: UUID = \"'$CITY_UUID'\") {\n  updateCity(data: {uuid: $city, name: \"'$NEW_NAME'\"}) {\n    uuid\n    name\n  }\n}"}'
 
-  EXPECTED_RESPONSE='{
-    "uuid": "'$CITY_UUID'",
-    "name": "'$NEW_NAME'"
-  }'
-
-  # Use jq to compare the actual response with the expected response
-  if docker compose exec app jq -e --argjson expected "$EXPECTED_RESPONSE" '.data.updateCity | .name == $expected.name and .country == $expected.country and .region == $expected.region and .timezone == $expected.timezone and .latitude == $expected.latitude and .longitude == $expected.longitude' response.json > /dev/null; then
+  if docker compose exec app jq -e --arg uuid "$CITY_UUID" --arg name "$NEW_NAME" '
+    (.data.updateCity.uuid == $uuid) and
+    (.data.updateCity.name == $name)
+  ' response.json > /dev/null; then
     echo "Test UpdateCity PASSED"
   else
     echo "Test UpdateCity FAILED"
@@ -141,10 +135,7 @@ function testDeleteCity() {
     -H "Cookie: csrftoken=$CSRF_TOKEN" \
     --data-raw '{"query":"mutation DeleteCity {\n  deleteCity(data: {uuid: \"'$CITY_UUID'\"}) {\n    uuid\n  }\n}"}'
 
-  EXPECTED_RESPONSE='{"uuid": "'$CITY_UUID'"}'
-
-  # Use jq to compare the actual response with the expected response
-  if docker compose exec app jq -e --argjson expected "$EXPECTED_RESPONSE" '.data.deleteCity | .uuid == $expected.uuid' response.json > /dev/null; then
+  if docker compose exec app jq -e --arg uuid "$CITY_UUID" '.data.deleteCity.uuid == $uuid' response.json > /dev/null; then
     echo "Test DeleteCity PASSED"
   else
     echo "Test DeleteCity FAILED"

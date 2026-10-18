@@ -11,7 +11,7 @@ djangorestframework
 djangorestframework-simplejwt
 drf-spectacular
 ./enricher
-httpx
+httpx2
 json-log-formatter
 markdown
 psycopg2
