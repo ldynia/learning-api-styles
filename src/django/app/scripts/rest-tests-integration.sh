@@ -47,7 +47,7 @@ function testCityCreation() {
     jq -r '.results[0].uuid'"
   )
 
-  if [ -n "$CITY_UUID" ]; then
+  if [ -n "$CITY_UUID" ] && [ "$CITY_UUID" != "null" ]; then
     echo "Test city creation PASSED"
   else
     echo "Test city creation FAILED"
@@ -59,8 +59,8 @@ function testCityRetrieval() {
   CITY_CAIRO=$(docker compose exec app bash -c \
     "curl --silent \
       'http://localhost:8000/api/cities?sort=-name&fields=name&search_region=Africa' | \
-    jq '.results[0].name'")
-  if [ "$CITY_CAIRO" == \"Cairo\" ]; then
+    jq -r '.results[0].name'")
+  if [ "$CITY_CAIRO" = "Cairo" ]; then
     echo "Test city retrieval PASSED"
   else
     echo "Test city retrieval FAILED"
@@ -69,15 +69,11 @@ function testCityRetrieval() {
 }
 
 function testContentPagination() {
-  PAGINATED_CONTENT_NEXT=$(docker compose exec app bash -c \
+  PAGINATED_CONTENT=$(docker compose exec app bash -c \
     "curl --silent 'http://localhost:8000/api/cities?page_size=1&page=2' | \
-    jq '.next'"
+    jq -e '.next != null and .previous != null'"
   )
-  PAGINATED_CONTENT_PREVIOUS=$(docker compose exec app bash -c \
-    "curl --silent 'http://localhost:8000/api/cities?page_size=1&page=2' | \
-    jq '.previous'"
-  )
-  if [[ -n "${PAGINATED_CONTENT_NEXT:-}" && -n "${PAGINATED_CONTENT_PREVIOUS:-}" && "$PAGINATED_CONTENT_NEXT" != "null" && "$PAGINATED_CONTENT_PREVIOUS" != "null" ]]; then
+  if [ $? -eq 0 ]; then
     echo "Test city pagination PASSED"
   else
     echo "Test city pagination FAILED"
@@ -96,9 +92,9 @@ function testCityDeletion() {
     --request 'DELETE' \
     --silent \
     'http://localhost:8000/api/cities/$CITY_UUID?soft_delete=true' | \
-    jq '.results[0].deleted'"
+    jq -r '.results[0].deleted'"
   )
-  if [ "$STATUS" == "true" ]; then
+  if [ "$STATUS" = "true" ]; then
     echo "Test city deletion PASSED"
   else
     echo "Test city deletion FAILED"
