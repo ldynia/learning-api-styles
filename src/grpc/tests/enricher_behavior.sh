@@ -171,12 +171,12 @@ echo
 if [[ "$BEHAVIOR" =~ ^(caching)$ ]];
 then
   echo "Second request is cached"
-  DIFFERENCE=$((CACHING_RUN1_ELAPSED - CACHING_RUN2_ELAPSED))
-  if (( DIFFERENCE < 0 )); then
-    DIFFERENCE=$(( -DIFFERENCE ))
-  fi
-  if (( DIFFERENCE < 5 )); then
-    echo "Error: two runs are within ${DIFFERENCE} seconds"
+  # A cache hit never reaches the servicer, so the language model is called,
+  # and "Getting lm_response" is logged, only once for both caching requests.
+  # Comparing request durations proved flaky on CI.
+  LM_CALLS=$(grep "Getting lm_response" ${LOGFILE_SERVER} | grep --count "forecast for caching in" || true)
+  if (( LM_CALLS != 1 )); then
+    echo "Error: expected 1 language model call for the caching requests, got ${LM_CALLS}"
     exit 1
   fi
 fi
