@@ -2,6 +2,9 @@ FROM debian:stable
 
 ARG WORKDIR=/usr/src/grpc
 
+ARG PIP_UPLOADED_PRIOR_TO=P7D
+ENV PIP_UPLOADED_PRIOR_TO=${PIP_UPLOADED_PRIOR_TO}
+
 # Set the UID/GID of the user:group to the IDs of the user using this Dockerfile
 ARG USER=nonroot
 ARG GROUP=nonroot
